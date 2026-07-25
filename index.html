@@ -37,10 +37,11 @@ body{margin:0;background:var(--plane);color:var(--text-primary);font-family:var(
      font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
 .wrap{max-width:1120px;margin:0 auto;padding:34px 22px 64px}
 h1{font-size:clamp(1.5rem,3.2vw,2.1rem);line-height:1.2;margin:0 0 .5rem;letter-spacing:-.015em}
-.standfirst{margin:0 0 1.4rem;color:var(--text-secondary);font-size:1.02rem;max-width:74ch}
-.howto{background:var(--surface-1);border:1px solid var(--border);border-radius:10px;
-       padding:14px 16px;margin:0 0 1.5rem;font-size:.92rem;color:var(--text-secondary);max-width:88ch}
-.howto b{color:var(--text-primary)}
+.standfirst{
+  margin:0 0 1.4rem;
+  color:var(--text-secondary);
+  font-size:1.02rem;
+}
 .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 6px}
 .controls .lab{font-size:.78rem;text-transform:uppercase;letter-spacing:.07em;
                color:var(--text-muted);margin-right:6px;font-weight:600}
@@ -133,8 +134,13 @@ table{border-collapse:collapse;width:100%;margin:14px 0 6px;font-size:.85rem;
 th,td{text-align:right;padding:6px 9px;border-bottom:1px solid var(--grid)}
 th:first-child,td:first-child{text-align:left}
 thead th{color:var(--text-muted);font-size:.76rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
-footer{margin:30px 0 0;padding-top:16px;border-top:1px solid var(--border);
-       font-size:.82rem;color:var(--text-muted);max-width:88ch}
+footer{
+  margin:30px 0 0;
+  padding-top:16px;
+  border-top:1px solid var(--border);
+  font-size:.82rem;
+  color:var(--text-muted);
+}
 footer a{color:inherit}
 .themebtn{margin-left:auto}
 </style>
@@ -148,15 +154,6 @@ University of California campus in 2023&ndash;2025. Schools are sorted into five
 <em>what share of their UC-eligible seniors applied</em>, and into four groups by
 <em>how their own students scored on the state tests</em>. Pick a campus, then hover or click
 any point to see exactly which schools it stands for.</p>
-
-<div class="howto">
-<b>Read the horizontal axis carefully.</b> It is <b>not time</b>. Left to right does not mean
-2023 to 2025 &mdash; all three years are pooled together in every point. Moving right means a
-<em>larger share of the school&rsquo;s eligible seniors chose to apply</em> to this campus. The
-leftmost group is schools where hardly anyone applies; the rightmost is schools where most of the
-eligible class does. Each colored line is a different kind of school, followed across those five
-groups.
-</div>
 
 <div class="controls" role="group" aria-label="Choose a campus">
   <span class="lab">Campus</span>
