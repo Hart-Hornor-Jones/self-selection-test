@@ -42,7 +42,36 @@ h1{font-size:clamp(1.5rem,3.2vw,2.1rem);line-height:1.2;margin:0 0 .5rem;letter-
   color:var(--text-secondary);
   font-size:1.02rem;
 }
-.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 6px}
+.controls{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:0 0 6px}
+.ctl{display:flex;align-items:center;gap:7px}
+select.pick{
+  font:inherit;
+  font-size:.9rem;
+  padding:6px 30px 6px 11px;
+  border-radius:8px;
+  cursor:pointer;
+  background:var(--chip);
+  color:var(--text-primary);
+  border:1px solid var(--border);
+  appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);
+  background-position:calc(100% - 16px) calc(50% + 1px),calc(100% - 11px) calc(50% + 1px);
+  background-size:5px 5px,5px 5px;
+  background-repeat:no-repeat;
+}
+select.pick:hover{border-color:var(--axis)}
+select.pick:focus-visible{outline:2px solid var(--s3);outline-offset:2px}
+.denote[hidden]{display:none}
+.denote{
+  margin:14px 0 0;
+  padding:13px 15px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:var(--surface-1);
+  font-size:.88rem;
+  color:var(--text-secondary);
+}
+.denote b{color:var(--text-primary)}
 .controls .lab{font-size:.78rem;text-transform:uppercase;letter-spacing:.07em;
                color:var(--text-muted);margin-right:6px;font-weight:600}
 button.chip{font:inherit;font-size:.88rem;padding:5px 12px;border-radius:999px;cursor:pointer;
@@ -55,6 +84,12 @@ button.chip:focus-visible{outline:2px solid var(--s3);outline-offset:2px}
 figure{margin:0;background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:16px 14px 10px}
 figcaption{font-weight:700;font-size:1rem;margin:0 0 2px;padding:0 4px}
 .sub{font-size:.84rem;color:var(--text-muted);margin:0 0 6px;padding:0 4px}
+.xlab{
+  margin:2px 4px 4px;
+  font-size:.83rem;
+  color:var(--text-secondary);
+  text-align:center;
+}
 svg{display:block;width:100%;height:auto;overflow:visible}
 .gl{stroke:var(--grid);stroke-width:1}
 .ax{fill:var(--text-muted);font-size:11px}
@@ -151,26 +186,35 @@ footer a{color:inherit}
 <h1>Admit rates by how many students apply</h1>
 <p class="standfirst">Every California public high school that sent at least 30 applications to a
 University of California campus in 2023&ndash;2025. Schools are sorted into five groups by
-<em>what share of their UC-eligible seniors applied</em>, and into four groups by
-<em>how their own students scored on the state tests</em>. Pick a campus, then hover or click
-any point to see exactly which schools it stands for.</p>
+<em>how large a share of their students applied</em>, and into four groups by
+<em>how their own students scored on the state tests</em>. Pick a campus and a denominator, then
+hover or click any point to see exactly which schools it stands for.</p>
 
-<div class="controls" role="group" aria-label="Choose a campus">
-  <span class="lab">Campus</span>
-  <span id="campusChips"></span>
+<div class="controls">
+  <span class="ctl"><label class="lab" for="campusPick">Campus</label>
+    <select class="pick" id="campusPick"></select></span>
+  <span class="ctl"><label class="lab" for="denPick">Share of</label>
+    <select class="pick" id="denPick">
+      <option value="cohort">All graduating seniors</option>
+      <option value="ag">A&ndash;G completers only</option>
+    </select></span>
   <button class="chip themebtn" id="themeBtn" type="button">Dark</button>
 </div>
+
+<p class="denote" id="denote" hidden></p>
 
 <div class="charts">
   <figure>
     <figcaption>A. Admit rate</figcaption>
     <p class="sub">Of the students who applied, the share who were offered admission.</p>
     <svg id="svgA" viewBox="0 0 520 330" role="img" aria-label="Admit rate by application-rate group"></svg>
+    <p class="xlab"></p>
   </figure>
   <figure>
     <figcaption>B. Applicant-pool GPA</figcaption>
     <p class="sub">The average grade point average of the students who applied, as UC recalculates it.</p>
     <svg id="svgB" viewBox="0 0 520 330" role="img" aria-label="Applicant pool GPA by application-rate group"></svg>
+    <p class="xlab"></p>
   </figure>
 </div>
 
@@ -213,7 +257,7 @@ by itself evidence about how any individual application was read.</p>
 <div class="tip" id="tip" aria-hidden="true"></div>
 
 <script>
-const DATA = {"Berkeley":{"n":994,"bands":[{"lo":6,"hi":16},{"lo":16,"hi":20},{"lo":20,"hi":26},{"lo":26,"hi":37},{"lo":37,"hi":120}],"groups":[{"lo":0,"hi":31},{"lo":31,"hi":42},{"lo":42,"hi":57},{"lo":57,"hi":98}],"cells":[[{"n":70,"admit":20.1,"gpa":3.691,"dpe":0.027,"apps":5038,"adm":696,"upp":88,"appr":13},{"n":77,"admit":19.6,"gpa":3.781,"dpe":0.026,"apps":5921,"adm":784,"upp":76,"appr":13},{"n":39,"admit":17.2,"gpa":3.843,"dpe":0.021,"apps":3539,"adm":429,"upp":61,"appr":12},{"n":13,"admit":14.4,"gpa":3.874,"dpe":0.018,"apps":1583,"adm":195,"upp":42,"appr":12}],[{"n":66,"admit":18.3,"gpa":3.707,"dpe":0.034,"apps":5609,"adm":815,"upp":87,"appr":18},{"n":57,"admit":20.5,"gpa":3.77,"dpe":0.038,"apps":5158,"adm":831,"upp":80,"appr":18},{"n":54,"admit":18.3,"gpa":3.822,"dpe":0.034,"apps":7158,"adm":1093,"upp":66,"appr":18},{"n":22,"admit":17.5,"gpa":3.891,"dpe":0.031,"apps":2945,"adm":368,"upp":47,"appr":18}],[{"n":57,"admit":18.2,"gpa":3.719,"dpe":0.043,"apps":5500,"adm":814,"upp":86,"appr":23},{"n":58,"admit":18.9,"gpa":3.782,"dpe":0.046,"apps":5647,"adm":856,"upp":75,"appr":23},{"n":53,"admit":16.6,"gpa":3.863,"dpe":0.039,"apps":8261,"adm":1148,"upp":56,"appr":23},{"n":30,"admit":16.2,"gpa":3.89,"dpe":0.038,"apps":6662,"adm":893,"upp":43,"appr":23}],[{"n":38,"admit":19.4,"gpa":3.736,"dpe":0.059,"apps":3616,"adm":557,"upp":83,"appr":31},{"n":39,"admit":17.4,"gpa":3.802,"dpe":0.056,"apps":6203,"adm":1048,"upp":72,"appr":32},{"n":62,"admit":15.6,"gpa":3.882,"dpe":0.049,"apps":12904,"adm":1861,"upp":51,"appr":31},{"n":60,"admit":13.8,"gpa":3.893,"dpe":0.044,"apps":14702,"adm":1790,"upp":38,"appr":32}],[{"n":18,"admit":20.1,"gpa":3.739,"dpe":0.103,"apps":2391,"adm":436,"upp":86,"appr":49},{"n":17,"admit":18.7,"gpa":3.836,"dpe":0.099,"apps":2556,"adm":358,"upp":72,"appr":54},{"n":40,"admit":16.6,"gpa":3.863,"dpe":0.079,"apps":10688,"adm":1593,"upp":51,"appr":47},{"n":124,"admit":15.4,"gpa":3.929,"dpe":0.083,"apps":59985,"adm":8210,"upp":30,"appr":54}]],"within":[-0.248,-0.06,-0.062,-0.301,-0.228],"r_raw":-0.226,"r_app":-0.19,"r_upp":0.006,"r_ach_appr":0.512,"r_ach_gpa":0.593,"r_ach_dpe":0.252},"Los Angeles":{"n":959,"bands":[{"lo":9,"hi":22},{"lo":22,"hi":29},{"lo":29,"hi":36},{"lo":36,"hi":46},{"lo":46,"hi":117}],"groups":[{"lo":5,"hi":32},{"lo":32,"hi":43},{"lo":43,"hi":57},{"lo":57,"hi":98}],"cells":[[{"n":56,"admit":13.2,"gpa":3.811,"dpe":0.024,"apps":5192,"adm":419,"upp":83,"appr":18},{"n":74,"admit":12.8,"gpa":3.874,"dpe":0.023,"apps":7772,"adm":629,"upp":69,"appr":17},{"n":47,"admit":12.0,"gpa":3.931,"dpe":0.021,"apps":5766,"adm":485,"upp":55,"appr":17},{"n":15,"admit":12.7,"gpa":3.939,"dpe":0.021,"apps":1907,"adm":198,"upp":40,"appr":17}],[{"n":62,"admit":10.9,"gpa":3.763,"dpe":0.029,"apps":8174,"adm":686,"upp":86,"appr":25},{"n":66,"admit":10.8,"gpa":3.841,"dpe":0.029,"apps":9260,"adm":785,"upp":73,"appr":26},{"n":44,"admit":10.8,"gpa":3.873,"dpe":0.028,"apps":7678,"adm":662,"upp":56,"appr":26},{"n":20,"admit":10.7,"gpa":3.958,"dpe":0.028,"apps":4555,"adm":409,"upp":37,"appr":26}],[{"n":58,"admit":11.1,"gpa":3.743,"dpe":0.037,"apps":8601,"adm":711,"upp":88,"appr":32},{"n":46,"admit":11.3,"gpa":3.786,"dpe":0.036,"apps":7439,"adm":623,"upp":82,"appr":32},{"n":56,"admit":11.2,"gpa":3.936,"dpe":0.037,"apps":13403,"adm":1256,"upp":51,"appr":32},{"n":31,"admit":9.6,"gpa":3.933,"dpe":0.031,"apps":9780,"adm":897,"upp":39,"appr":32}],[{"n":49,"admit":12.0,"gpa":3.673,"dpe":0.049,"apps":7664,"adm":714,"upp":90,"appr":39},{"n":36,"admit":12.2,"gpa":3.835,"dpe":0.05,"apps":7231,"adm":782,"upp":80,"appr":40},{"n":59,"admit":10.0,"gpa":3.881,"dpe":0.04,"apps":14116,"adm":1269,"upp":60,"appr":40},{"n":48,"admit":9.9,"gpa":3.922,"dpe":0.041,"apps":14793,"adm":1331,"upp":38,"appr":41}],[{"n":15,"admit":14.1,"gpa":3.735,"dpe":0.073,"apps":2576,"adm":266,"upp":87,"appr":52},{"n":18,"admit":12.9,"gpa":3.732,"dpe":0.098,"apps":3610,"adm":428,"upp":80,"appr":55},{"n":33,"admit":10.7,"gpa":3.86,"dpe":0.056,"apps":11164,"adm":1129,"upp":65,"appr":52},{"n":126,"admit":10.0,"gpa":3.947,"dpe":0.061,"apps":70211,"adm":6342,"upp":32,"appr":61}]],"within":[-0.106,-0.037,-0.061,-0.241,-0.283],"r_raw":-0.167,"r_app":-0.127,"r_upp":-0.116,"r_ach_appr":0.528,"r_ach_gpa":0.544,"r_ach_dpe":0.178},"San Diego":{"n":1047,"bands":[{"lo":6,"hi":19},{"lo":19,"hi":25},{"lo":25,"hi":32},{"lo":32,"hi":42},{"lo":42,"hi":115}],"groups":[{"lo":5,"hi":31},{"lo":31,"hi":42},{"lo":42,"hi":56},{"lo":56,"hi":98}],"cells":[[{"n":91,"admit":40.2,"gpa":3.685,"dpe":0.061,"apps":5700,"adm":2127,"upp":86,"appr":15},{"n":66,"admit":34.6,"gpa":3.729,"dpe":0.049,"apps":4454,"adm":1303,"upp":75,"appr":14},{"n":41,"admit":31.5,"gpa":3.775,"dpe":0.043,"apps":3525,"adm":898,"upp":60,"appr":14},{"n":12,"admit":25.1,"gpa":3.808,"dpe":0.039,"apps":1253,"adm":290,"upp":39,"appr":15}],[{"n":73,"admit":40.1,"gpa":3.646,"dpe":0.089,"apps":7690,"adm":3018,"upp":87,"appr":22},{"n":73,"admit":35.0,"gpa":3.708,"dpe":0.076,"apps":7819,"adm":2533,"upp":75,"appr":21},{"n":52,"admit":30.2,"gpa":3.756,"dpe":0.068,"apps":7396,"adm":2024,"upp":63,"appr":22},{"n":11,"admit":31.6,"gpa":3.879,"dpe":0.071,"apps":1645,"adm":470,"upp":44,"appr":22}],[{"n":56,"admit":39.3,"gpa":3.609,"dpe":0.111,"apps":7282,"adm":2834,"upp":87,"appr":28},{"n":66,"admit":35.0,"gpa":3.705,"dpe":0.097,"apps":9205,"adm":3147,"upp":76,"appr":28},{"n":63,"admit":28.9,"gpa":3.779,"dpe":0.082,"apps":10987,"adm":2931,"upp":59,"appr":28},{"n":24,"admit":25.6,"gpa":3.816,"dpe":0.077,"apps":6637,"adm":1619,"upp":47,"appr":29}],[{"n":28,"admit":39.3,"gpa":3.638,"dpe":0.138,"apps":4583,"adm":1687,"upp":85,"appr":36},{"n":44,"admit":33.5,"gpa":3.714,"dpe":0.121,"apps":7769,"adm":2681,"upp":77,"appr":36},{"n":67,"admit":26.6,"gpa":3.8,"dpe":0.097,"apps":16608,"adm":4047,"upp":53,"appr":36},{"n":70,"admit":24.3,"gpa":3.827,"dpe":0.089,"apps":20083,"adm":4556,"upp":39,"appr":37}],[{"n":14,"admit":37.7,"gpa":3.624,"dpe":0.213,"apps":2828,"adm":1125,"upp":90,"appr":55},{"n":14,"admit":35.2,"gpa":3.718,"dpe":0.171,"apps":2513,"adm":926,"upp":68,"appr":48},{"n":37,"admit":26.3,"gpa":3.808,"dpe":0.124,"apps":11246,"adm":2923,"upp":57,"appr":48},{"n":145,"admit":21.1,"gpa":3.868,"dpe":0.122,"apps":79686,"adm":15558,"upp":32,"appr":59}]],"within":[-0.435,-0.286,-0.401,-0.439,-0.52],"r_raw":-0.537,"r_app":-0.4,"r_upp":-0.067,"r_ach_appr":0.624,"r_ach_gpa":0.556,"r_ach_dpe":0.108},"Santa Barbara":{"n":1013,"bands":[{"lo":4,"hi":15},{"lo":15,"hi":20},{"lo":20,"hi":26},{"lo":26,"hi":36},{"lo":36,"hi":95}],"groups":[{"lo":9,"hi":32},{"lo":32,"hi":42},{"lo":42,"hi":57},{"lo":57,"hi":98}],"cells":[[{"n":81,"admit":51.0,"gpa":3.753,"dpe":0.059,"apps":5246,"adm":2545,"upp":84,"appr":11},{"n":76,"admit":47.9,"gpa":3.825,"dpe":0.059,"apps":5562,"adm":2491,"upp":73,"appr":12},{"n":36,"admit":45.4,"gpa":3.87,"dpe":0.054,"apps":3088,"adm":1346,"upp":66,"appr":12},{"n":10,"admit":37.3,"gpa":3.852,"dpe":0.045,"apps":908,"adm":319,"upp":55,"appr":12}],[{"n":82,"admit":41.9,"gpa":3.695,"dpe":0.072,"apps":6193,"adm":2530,"upp":89,"appr":17},{"n":56,"admit":39.6,"gpa":3.804,"dpe":0.067,"apps":4876,"adm":1870,"upp":76,"appr":17},{"n":48,"admit":35.0,"gpa":3.868,"dpe":0.061,"apps":5802,"adm":1986,"upp":62,"appr":17},{"n":16,"admit":34.6,"gpa":3.937,"dpe":0.06,"apps":2567,"adm":825,"upp":49,"appr":17}],[{"n":54,"admit":35.4,"gpa":3.741,"dpe":0.079,"apps":5267,"adm":1850,"upp":87,"appr":22},{"n":61,"admit":36.0,"gpa":3.827,"dpe":0.082,"apps":6005,"adm":2080,"upp":77,"appr":23},{"n":55,"admit":32.1,"gpa":3.877,"dpe":0.073,"apps":7964,"adm":2520,"upp":61,"appr":23},{"n":33,"admit":29.4,"gpa":3.901,"dpe":0.067,"apps":5188,"adm":1494,"upp":47,"appr":23}],[{"n":30,"admit":33.6,"gpa":3.719,"dpe":0.102,"apps":3051,"adm":971,"upp":87,"appr":30},{"n":51,"admit":33.7,"gpa":3.834,"dpe":0.1,"apps":7346,"adm":2547,"upp":72,"appr":29},{"n":68,"admit":30.7,"gpa":3.917,"dpe":0.095,"apps":13287,"adm":3941,"upp":54,"appr":31},{"n":53,"admit":29.9,"gpa":3.94,"dpe":0.092,"apps":13167,"adm":3807,"upp":42,"appr":31}],[null,{"n":9,"admit":32.0,"gpa":3.897,"dpe":0.143,"apps":997,"adm":323,"upp":61,"appr":45},{"n":46,"admit":27.7,"gpa":3.961,"dpe":0.118,"apps":14388,"adm":3983,"upp":45,"appr":43},{"n":141,"admit":28.2,"gpa":3.97,"dpe":0.153,"apps":72654,"adm":20170,"upp":28,"appr":54}]],"within":[-0.252,-0.291,-0.299,-0.233,0.038],"r_raw":-0.429,"r_app":-0.152,"r_upp":-0.292,"r_ach_appr":0.645,"r_ach_gpa":0.594,"r_ach_dpe":0.495},"Irvine":{"n":1018,"bands":[{"lo":6,"hi":20},{"lo":20,"hi":28},{"lo":28,"hi":35},{"lo":35,"hi":44},{"lo":44,"hi":121}],"groups":[{"lo":7,"hi":32},{"lo":32,"hi":42},{"lo":42,"hi":57},{"lo":57,"hi":98}],"cells":[[{"n":69,"admit":25.5,"gpa":3.762,"dpe":0.04,"apps":4713,"adm":934,"upp":83,"appr":15},{"n":72,"admit":25.4,"gpa":3.851,"dpe":0.037,"apps":5321,"adm":1063,"upp":67,"appr":15},{"n":49,"admit":25.9,"gpa":3.914,"dpe":0.039,"apps":4681,"adm":1065,"upp":53,"appr":15},{"n":14,"admit":26.7,"gpa":3.92,"dpe":0.041,"apps":1429,"adm":341,"upp":42,"appr":15}],[{"n":58,"admit":23.0,"gpa":3.723,"dpe":0.056,"apps":6473,"adm":1261,"upp":85,"appr":24},{"n":68,"admit":21.9,"gpa":3.814,"dpe":0.053,"apps":8955,"adm":1772,"upp":72,"appr":24},{"n":55,"admit":23.3,"gpa":3.903,"dpe":0.056,"apps":8719,"adm":1946,"upp":51,"appr":24},{"n":22,"admit":26.7,"gpa":3.954,"dpe":0.065,"apps":3701,"adm":927,"upp":32,"appr":23}],[{"n":53,"admit":21.9,"gpa":3.685,"dpe":0.071,"apps":8323,"adm":1701,"upp":89,"appr":32},{"n":55,"admit":23.3,"gpa":3.778,"dpe":0.075,"apps":9227,"adm":2051,"upp":80,"appr":32},{"n":57,"admit":18.9,"gpa":3.878,"dpe":0.06,"apps":13256,"adm":2357,"upp":54,"appr":31},{"n":39,"admit":24.7,"gpa":3.944,"dpe":0.077,"apps":12155,"adm":3084,"upp":33,"appr":31}],[{"n":54,"admit":21.6,"gpa":3.656,"dpe":0.085,"apps":8773,"adm":1816,"upp":90,"appr":39},{"n":42,"admit":20.8,"gpa":3.748,"dpe":0.082,"apps":8375,"adm":1751,"upp":83,"appr":39},{"n":49,"admit":21.8,"gpa":3.864,"dpe":0.086,"apps":12881,"adm":2753,"upp":60,"appr":39},{"n":58,"admit":24.4,"gpa":3.944,"dpe":0.096,"apps":19655,"adm":4710,"upp":36,"appr":40}],[{"n":21,"admit":19.5,"gpa":3.62,"dpe":0.104,"apps":4401,"adm":846,"upp":93,"appr":52},{"n":17,"admit":20.2,"gpa":3.728,"dpe":0.109,"apps":3132,"adm":582,"upp":83,"appr":54},{"n":44,"admit":21.3,"gpa":3.792,"dpe":0.109,"apps":11397,"adm":2272,"upp":74,"appr":51},{"n":122,"admit":23.8,"gpa":3.929,"dpe":0.146,"apps":67291,"adm":15508,"upp":37,"appr":61}]],"within":[0.064,0.131,0.053,0.12,0.255],"r_raw":0.08,"r_app":0.144,"r_upp":0.101,"r_ach_appr":0.505,"r_ach_gpa":0.58,"r_ach_dpe":0.447},"Davis":{"n":1067,"bands":[{"lo":5,"hi":13},{"lo":13,"hi":18},{"lo":18,"hi":26},{"lo":26,"hi":38},{"lo":38,"hi":120}],"groups":[{"lo":0,"hi":31},{"lo":31,"hi":41},{"lo":41,"hi":56},{"lo":56,"hi":98}],"cells":[[{"n":74,"admit":42.0,"gpa":3.819,"dpe":0.043,"apps":4128,"adm":1638,"upp":88,"appr":10},{"n":73,"admit":41.9,"gpa":3.903,"dpe":0.042,"apps":4520,"adm":1817,"upp":78,"appr":10},{"n":50,"admit":41.3,"gpa":3.939,"dpe":0.043,"apps":4163,"adm":1664,"upp":68,"appr":10},{"n":17,"admit":38.6,"gpa":3.961,"dpe":0.039,"apps":1725,"adm":642,"upp":57,"appr":10}],[{"n":65,"admit":41.7,"gpa":3.802,"dpe":0.065,"apps":4785,"adm":1935,"upp":88,"appr":15},{"n":62,"admit":43.9,"gpa":3.887,"dpe":0.07,"apps":4508,"adm":1913,"upp":77,"appr":16},{"n":55,"admit":42.7,"gpa":3.955,"dpe":0.066,"apps":4749,"adm":1991,"upp":68,"appr":15},{"n":31,"admit":38.4,"gpa":3.996,"dpe":0.058,"apps":4341,"adm":1634,"upp":48,"appr":15}],[{"n":42,"admit":42.9,"gpa":3.813,"dpe":0.099,"apps":3543,"adm":1482,"upp":84,"appr":23},{"n":58,"admit":43.9,"gpa":3.883,"dpe":0.095,"apps":5361,"adm":2314,"upp":73,"appr":22},{"n":65,"admit":42.6,"gpa":3.984,"dpe":0.093,"apps":9125,"adm":3826,"upp":56,"appr":22},{"n":48,"admit":41.5,"gpa":3.981,"dpe":0.09,"apps":7998,"adm":3109,"upp":45,"appr":22}],[{"n":50,"admit":39.7,"gpa":3.827,"dpe":0.127,"apps":4810,"adm":1937,"upp":82,"appr":32},{"n":51,"admit":40.0,"gpa":3.887,"dpe":0.128,"apps":6076,"adm":2426,"upp":68,"appr":32},{"n":49,"admit":39.8,"gpa":3.96,"dpe":0.124,"apps":8797,"adm":3497,"upp":49,"appr":31},{"n":63,"admit":40.4,"gpa":4.018,"dpe":0.128,"apps":15024,"adm":5806,"upp":35,"appr":32}],[{"n":36,"admit":41.8,"gpa":3.782,"dpe":0.208,"apps":3847,"adm":1587,"upp":83,"appr":49},{"n":23,"admit":40.8,"gpa":3.861,"dpe":0.2,"apps":3696,"adm":1533,"upp":73,"appr":48},{"n":47,"admit":35.7,"gpa":3.946,"dpe":0.175,"apps":12954,"adm":4546,"upp":49,"appr":49},{"n":108,"admit":33.4,"gpa":4.003,"dpe":0.183,"apps":56243,"adm":16995,"upp":26,"appr":56}]],"within":[-0.071,-0.112,-0.069,0.098,-0.407],"r_raw":-0.217,"r_app":-0.121,"r_upp":0.0,"r_ach_appr":0.394,"r_ach_gpa":0.573,"r_ach_dpe":0.275},"Santa Cruz":{"n":989,"bands":[{"lo":4,"hi":11},{"lo":11,"hi":16},{"lo":16,"hi":20},{"lo":20,"hi":30},{"lo":30,"hi":93}],"groups":[{"lo":5,"hi":32},{"lo":32,"hi":42},{"lo":42,"hi":57},{"lo":57,"hi":98}],"cells":[[{"n":61,"admit":54.2,"gpa":3.709,"dpe":0.047,"apps":3392,"adm":1831,"upp":86,"appr":9},{"n":67,"admit":60.2,"gpa":3.803,"dpe":0.054,"apps":3772,"adm":2255,"upp":76,"appr":9},{"n":47,"admit":63.8,"gpa":3.843,"dpe":0.06,"apps":3339,"adm":2105,"upp":67,"appr":9},{"n":23,"admit":62.4,"gpa":3.881,"dpe":0.053,"apps":1907,"adm":1203,"upp":51,"appr":8}],[{"n":68,"admit":54.4,"gpa":3.711,"dpe":0.074,"apps":4467,"adm":2442,"upp":87,"appr":13},{"n":57,"admit":61.1,"gpa":3.794,"dpe":0.082,"apps":4339,"adm":2672,"upp":77,"appr":13},{"n":49,"admit":64.6,"gpa":3.886,"dpe":0.088,"apps":5302,"adm":3455,"upp":56,"appr":14},{"n":25,"admit":68.1,"gpa":3.922,"dpe":0.09,"apps":3006,"adm":2025,"upp":48,"appr":13}],[{"n":54,"admit":55.8,"gpa":3.743,"dpe":0.099,"apps":3724,"adm":2031,"upp":86,"appr":18},{"n":50,"admit":59.1,"gpa":3.808,"dpe":0.107,"apps":4037,"adm":2406,"upp":72,"appr":18},{"n":51,"admit":61.9,"gpa":3.838,"dpe":0.114,"apps":5902,"adm":3739,"upp":62,"appr":18},{"n":41,"admit":67.3,"gpa":3.911,"dpe":0.119,"apps":6568,"adm":4440,"upp":44,"appr":18}],[{"n":42,"admit":53.0,"gpa":3.733,"dpe":0.131,"apps":3097,"adm":1686,"upp":86,"appr":25},{"n":49,"admit":58.6,"gpa":3.799,"dpe":0.146,"apps":4648,"adm":2833,"upp":74,"appr":25},{"n":53,"admit":66.3,"gpa":3.914,"dpe":0.16,"apps":7581,"adm":5105,"upp":53,"appr":24},{"n":55,"admit":68.5,"gpa":3.952,"dpe":0.179,"apps":10969,"adm":7509,"upp":32,"appr":26}],[{"n":24,"admit":55.9,"gpa":3.725,"dpe":0.234,"apps":2387,"adm":1400,"upp":87,"appr":42},{"n":23,"admit":62.6,"gpa":3.837,"dpe":0.24,"apps":2994,"adm":1913,"upp":69,"appr":38},{"n":47,"admit":66.5,"gpa":3.945,"dpe":0.261,"apps":11396,"adm":7743,"upp":45,"appr":39},{"n":103,"admit":67.3,"gpa":3.955,"dpe":0.309,"apps":44167,"adm":29711,"upp":27,"appr":46}]],"within":[0.378,0.491,0.38,0.477,0.379],"r_raw":0.448,"r_app":0.412,"r_upp":0.017,"r_ach_appr":0.409,"r_ach_gpa":0.57,"r_ach_dpe":0.493},"Riverside":{"n":887,"bands":[{"lo":4,"hi":12},{"lo":12,"hi":18},{"lo":18,"hi":25},{"lo":25,"hi":34},{"lo":34,"hi":111}],"groups":[{"lo":9,"hi":32},{"lo":32,"hi":43},{"lo":43,"hi":58},{"lo":58,"hi":98}],"cells":[[{"n":42,"admit":73.9,"gpa":3.662,"dpe":0.064,"apps":1895,"adm":1396,"upp":83,"appr":9},{"n":57,"admit":78.2,"gpa":3.708,"dpe":0.068,"apps":2956,"adm":2281,"upp":68,"appr":9},{"n":52,"admit":79.5,"gpa":3.76,"dpe":0.066,"apps":3069,"adm":2434,"upp":49,"appr":8},{"n":27,"admit":80.9,"gpa":3.792,"dpe":0.068,"apps":1919,"adm":1557,"upp":31,"appr":8}],[{"n":30,"admit":74.5,"gpa":3.632,"dpe":0.11,"apps":2381,"adm":1768,"upp":82,"appr":15},{"n":46,"admit":75.1,"gpa":3.694,"dpe":0.111,"apps":3850,"adm":2917,"upp":71,"appr":15},{"n":62,"admit":80.3,"gpa":3.724,"dpe":0.119,"apps":7127,"adm":5715,"upp":50,"appr":15},{"n":39,"admit":82.5,"gpa":3.79,"dpe":0.122,"apps":5127,"adm":4238,"upp":28,"appr":15}],[{"n":47,"admit":70.6,"gpa":3.571,"dpe":0.15,"apps":5405,"adm":3850,"upp":88,"appr":21},{"n":47,"admit":74.0,"gpa":3.626,"dpe":0.159,"apps":5485,"adm":4064,"upp":82,"appr":22},{"n":42,"admit":80.0,"gpa":3.714,"dpe":0.163,"apps":6483,"adm":5176,"upp":54,"appr":20},{"n":42,"admit":82.1,"gpa":3.779,"dpe":0.176,"apps":8161,"adm":6729,"upp":31,"appr":21}],[{"n":56,"admit":68.9,"gpa":3.527,"dpe":0.2,"apps":6375,"adm":4420,"upp":92,"appr":29},{"n":40,"admit":74.1,"gpa":3.587,"dpe":0.213,"apps":5754,"adm":4304,"upp":84,"appr":29},{"n":38,"admit":75.6,"gpa":3.669,"dpe":0.213,"apps":7332,"adm":5744,"upp":67,"appr":28},{"n":42,"admit":81.2,"gpa":3.777,"dpe":0.241,"apps":10740,"adm":8734,"upp":38,"appr":30}],[{"n":47,"admit":67.1,"gpa":3.488,"dpe":0.294,"apps":8028,"adm":5406,"upp":90,"appr":44},{"n":32,"admit":72.0,"gpa":3.52,"dpe":0.299,"apps":5892,"adm":4196,"upp":87,"appr":41},{"n":27,"admit":73.3,"gpa":3.561,"dpe":0.297,"apps":5608,"adm":4212,"upp":86,"appr":40},{"n":72,"admit":81.8,"gpa":3.787,"dpe":0.392,"apps":33484,"adm":27616,"upp":40,"appr":48}]],"within":[0.313,0.407,0.583,0.519,0.637],"r_raw":0.489,"r_app":0.524,"r_upp":0.112,"r_ach_appr":0.182,"r_ach_gpa":0.549,"r_ach_dpe":0.301},"Merced":{"n":882,"bands":[{"lo":3,"hi":8},{"lo":8,"hi":11},{"lo":11,"hi":15},{"lo":15,"hi":21},{"lo":21,"hi":70}],"groups":[{"lo":5,"hi":31},{"lo":31,"hi":42},{"lo":42,"hi":57},{"lo":57,"hi":98}],"cells":[[{"n":23,"admit":92.6,"gpa":3.828,"dpe":0.059,"apps":1041,"adm":969,"upp":83,"appr":6},{"n":38,"admit":93.1,"gpa":3.909,"dpe":0.06,"apps":1834,"adm":1706,"upp":70,"appr":6},{"n":63,"admit":94.0,"gpa":3.96,"dpe":0.058,"apps":3592,"adm":3390,"upp":54,"appr":6},{"n":53,"admit":96.0,"gpa":3.984,"dpe":0.06,"apps":3517,"adm":3375,"upp":35,"appr":6}],[{"n":40,"admit":90.7,"gpa":3.783,"dpe":0.085,"apps":2359,"adm":2146,"upp":82,"appr":9},{"n":44,"admit":92.8,"gpa":3.881,"dpe":0.086,"apps":2437,"adm":2260,"upp":72,"appr":9},{"n":53,"admit":94.9,"gpa":3.942,"dpe":0.086,"apps":3374,"adm":3205,"upp":57,"appr":9},{"n":39,"admit":96.1,"gpa":3.977,"dpe":0.089,"apps":3573,"adm":3426,"upp":40,"appr":9}],[{"n":48,"admit":90.6,"gpa":3.766,"dpe":0.114,"apps":2720,"adm":2462,"upp":89,"appr":13},{"n":45,"admit":92.1,"gpa":3.83,"dpe":0.114,"apps":2936,"adm":2704,"upp":80,"appr":12},{"n":42,"admit":94.2,"gpa":3.933,"dpe":0.117,"apps":3885,"adm":3659,"upp":55,"appr":12},{"n":41,"admit":96.1,"gpa":3.981,"dpe":0.119,"apps":4490,"adm":4321,"upp":33,"appr":12}],[{"n":57,"admit":91.6,"gpa":3.773,"dpe":0.164,"apps":3776,"adm":3464,"upp":89,"appr":18},{"n":52,"admit":92.0,"gpa":3.858,"dpe":0.16,"apps":3990,"adm":3702,"upp":76,"appr":17},{"n":27,"admit":94.8,"gpa":3.921,"dpe":0.166,"apps":2816,"adm":2674,"upp":61,"appr":17},{"n":40,"admit":95.8,"gpa":3.993,"dpe":0.169,"apps":6261,"adm":6028,"upp":33,"appr":18}],[{"n":53,"admit":90.8,"gpa":3.757,"dpe":0.304,"apps":5526,"adm":5062,"upp":88,"appr":33},{"n":41,"admit":93.6,"gpa":3.853,"dpe":0.287,"apps":4156,"adm":3859,"upp":84,"appr":31},{"n":35,"admit":93.6,"gpa":3.849,"dpe":0.249,"apps":3818,"adm":3582,"upp":76,"appr":27},{"n":48,"admit":95.6,"gpa":3.961,"dpe":0.304,"apps":13557,"adm":13063,"upp":38,"appr":32}]],"within":[0.333,0.46,0.452,0.38,0.359],"r_raw":0.397,"r_app":0.396,"r_upp":0.194,"r_ach_appr":-0.028,"r_ach_gpa":0.597,"r_ach_dpe":0.006}};
+const DATA = {"Berkeley":{"n":994,"groups":[{"lo":0,"hi":31},{"lo":31,"hi":42},{"lo":42,"hi":57},{"lo":57,"hi":98}],"r_raw":-0.226,"r_upp":0.006,"r_ach_gpa":0.593,"den":{"cohort":{"bands":[{"lo":3,"hi":7},{"lo":7,"hi":10},{"lo":10,"hi":15},{"lo":15,"hi":25},{"lo":25,"hi":81}],"cells":[[{"n":98,"admit":20.5,"gpa":3.713,"dpe":0.034,"apps":7148,"adm":1079,"upp":85,"appr":6},{"n":68,"admit":20.4,"gpa":3.787,"dpe":0.031,"apps":4848,"adm":674,"upp":75,"appr":6},{"n":29,"admit":17.7,"gpa":3.837,"dpe":0.023,"apps":2305,"adm":280,"upp":66,"appr":6},null],[{"n":72,"admit":18.3,"gpa":3.718,"dpe":0.04,"apps":6955,"adm":1024,"upp":87,"appr":8},{"n":79,"admit":17.4,"gpa":3.784,"dpe":0.034,"apps":7682,"adm":1072,"upp":74,"appr":9},{"n":35,"admit":15.8,"gpa":3.841,"dpe":0.028,"apps":4379,"adm":587,"upp":58,"appr":9},{"n":13,"admit":17.4,"gpa":3.897,"dpe":0.024,"apps":1602,"adm":204,"upp":43,"appr":9}],[{"n":51,"admit":16.3,"gpa":3.709,"dpe":0.044,"apps":5463,"adm":752,"upp":89,"appr":12},{"n":49,"admit":20.2,"gpa":3.794,"dpe":0.052,"apps":5482,"adm":873,"upp":78,"appr":12},{"n":66,"admit":16.4,"gpa":3.865,"dpe":0.036,"apps":10225,"adm":1410,"upp":55,"appr":12},{"n":32,"admit":15.6,"gpa":3.894,"dpe":0.033,"apps":5042,"adm":632,"upp":45,"appr":13}],[{"n":22,"admit":21.9,"gpa":3.689,"dpe":0.074,"apps":1749,"adm":276,"upp":88,"appr":19},{"n":41,"admit":19.4,"gpa":3.788,"dpe":0.057,"apps":6329,"adm":1074,"upp":75,"appr":19},{"n":80,"admit":16.9,"gpa":3.851,"dpe":0.049,"apps":16592,"adm":2458,"upp":57,"appr":20},{"n":56,"admit":14.5,"gpa":3.899,"dpe":0.043,"apps":14597,"adm":1815,"upp":36,"appr":20}],[null,{"n":11,"admit":19.8,"gpa":3.755,"dpe":0.097,"apps":1144,"adm":184,"upp":82,"appr":31},{"n":38,"admit":17.4,"gpa":3.877,"dpe":0.078,"apps":9049,"adm":1389,"upp":52,"appr":33},{"n":144,"admit":15.3,"gpa":3.921,"dpe":0.077,"apps":64278,"adm":8758,"upp":32,"appr":41}]],"within":[-0.188,-0.088,-0.074,-0.292,-0.208],"r_app":-0.179,"r_ach_appr":0.701,"over100":0,"n":994},"ag":{"bands":[{"lo":6,"hi":16},{"lo":16,"hi":20},{"lo":20,"hi":26},{"lo":26,"hi":37},{"lo":37,"hi":120}],"cells":[[{"n":70,"admit":20.1,"gpa":3.691,"dpe":0.027,"apps":5038,"adm":696,"upp":88,"appr":13},{"n":77,"admit":19.6,"gpa":3.781,"dpe":0.026,"apps":5921,"adm":784,"upp":76,"appr":13},{"n":39,"admit":17.2,"gpa":3.843,"dpe":0.021,"apps":3539,"adm":429,"upp":61,"appr":12},{"n":13,"admit":14.4,"gpa":3.874,"dpe":0.018,"apps":1583,"adm":195,"upp":42,"appr":12}],[{"n":66,"admit":18.3,"gpa":3.707,"dpe":0.034,"apps":5609,"adm":815,"upp":87,"appr":18},{"n":57,"admit":20.5,"gpa":3.77,"dpe":0.038,"apps":5158,"adm":831,"upp":80,"appr":18},{"n":54,"admit":18.3,"gpa":3.822,"dpe":0.034,"apps":7158,"adm":1093,"upp":66,"appr":18},{"n":22,"admit":17.5,"gpa":3.891,"dpe":0.031,"apps":2945,"adm":368,"upp":47,"appr":18}],[{"n":57,"admit":18.2,"gpa":3.719,"dpe":0.043,"apps":5500,"adm":814,"upp":86,"appr":23},{"n":58,"admit":18.9,"gpa":3.782,"dpe":0.046,"apps":5647,"adm":856,"upp":75,"appr":23},{"n":53,"admit":16.6,"gpa":3.863,"dpe":0.039,"apps":8261,"adm":1148,"upp":56,"appr":23},{"n":30,"admit":16.2,"gpa":3.89,"dpe":0.038,"apps":6662,"adm":893,"upp":43,"appr":23}],[{"n":38,"admit":19.4,"gpa":3.736,"dpe":0.059,"apps":3616,"adm":557,"upp":83,"appr":31},{"n":39,"admit":17.4,"gpa":3.802,"dpe":0.056,"apps":6203,"adm":1048,"upp":72,"appr":32},{"n":62,"admit":15.6,"gpa":3.882,"dpe":0.049,"apps":12904,"adm":1861,"upp":51,"appr":31},{"n":60,"admit":13.8,"gpa":3.893,"dpe":0.044,"apps":14702,"adm":1790,"upp":38,"appr":32}],[{"n":18,"admit":20.1,"gpa":3.739,"dpe":0.103,"apps":2391,"adm":436,"upp":86,"appr":49},{"n":17,"admit":18.7,"gpa":3.836,"dpe":0.099,"apps":2556,"adm":358,"upp":72,"appr":54},{"n":40,"admit":16.6,"gpa":3.863,"dpe":0.079,"apps":10688,"adm":1593,"upp":51,"appr":47},{"n":124,"admit":15.4,"gpa":3.929,"dpe":0.083,"apps":59985,"adm":8210,"upp":30,"appr":54}]],"within":[-0.248,-0.06,-0.062,-0.301,-0.228],"r_app":-0.19,"r_ach_appr":0.512,"over100":2,"n":994}}},"Los Angeles":{"n":959,"groups":[{"lo":5,"hi":32},{"lo":32,"hi":43},{"lo":43,"hi":57},{"lo":57,"hi":98}],"r_raw":-0.167,"r_upp":-0.116,"r_ach_gpa":0.544,"den":{"cohort":{"bands":[{"lo":2,"hi":10},{"lo":10,"hi":15},{"lo":15,"hi":21},{"lo":21,"hi":33},{"lo":33,"hi":88}],"cells":[[{"n":80,"admit":12.7,"gpa":3.817,"dpe":0.029,"apps":7730,"adm":627,"upp":82,"appr":7},{"n":75,"admit":13.1,"gpa":3.873,"dpe":0.025,"apps":7239,"adm":607,"upp":69,"appr":8},{"n":31,"admit":12.7,"gpa":3.927,"dpe":0.023,"apps":3007,"adm":237,"upp":55,"appr":8},null],[{"n":75,"admit":10.6,"gpa":3.736,"dpe":0.032,"apps":11529,"adm":949,"upp":86,"appr":12},{"n":65,"admit":10.2,"gpa":3.845,"dpe":0.027,"apps":9352,"adm":739,"upp":73,"appr":12},{"n":43,"admit":11.7,"gpa":3.922,"dpe":0.029,"apps":6315,"adm":604,"upp":54,"appr":13},{"n":9,"admit":12.1,"gpa":3.961,"dpe":0.023,"apps":1279,"adm":134,"upp":43,"appr":12}],[{"n":44,"admit":10.8,"gpa":3.692,"dpe":0.038,"apps":7937,"adm":716,"upp":91,"appr":18},{"n":48,"admit":10.7,"gpa":3.804,"dpe":0.037,"apps":8611,"adm":788,"upp":79,"appr":17},{"n":66,"admit":10.0,"gpa":3.909,"dpe":0.031,"apps":15929,"adm":1364,"upp":53,"appr":18},{"n":33,"admit":10.1,"gpa":3.913,"dpe":0.032,"apps":8304,"adm":746,"upp":41,"appr":18}],[{"n":35,"admit":13.4,"gpa":3.698,"dpe":0.055,"apps":4412,"adm":433,"upp":90,"appr":26},{"n":34,"admit":12.8,"gpa":3.796,"dpe":0.064,"apps":7217,"adm":772,"upp":79,"appr":26},{"n":61,"admit":10.6,"gpa":3.894,"dpe":0.042,"apps":16794,"adm":1586,"upp":55,"appr":26},{"n":62,"admit":9.4,"gpa":3.949,"dpe":0.036,"apps":23699,"adm":2099,"upp":34,"appr":27}],[null,{"n":18,"admit":14.3,"gpa":3.747,"dpe":0.067,"apps":2893,"adm":341,"upp":89,"appr":40},{"n":38,"admit":10.6,"gpa":3.841,"dpe":0.051,"apps":10082,"adm":1010,"upp":70,"appr":39},{"n":130,"admit":10.2,"gpa":3.943,"dpe":0.06,"apps":67352,"adm":6133,"upp":34,"appr":48}]],"within":[0.017,0.07,-0.104,-0.401,-0.256],"r_app":-0.146,"r_ach_appr":0.668,"over100":0,"n":959},"ag":{"bands":[{"lo":9,"hi":22},{"lo":22,"hi":29},{"lo":29,"hi":36},{"lo":36,"hi":46},{"lo":46,"hi":117}],"cells":[[{"n":56,"admit":13.2,"gpa":3.811,"dpe":0.024,"apps":5192,"adm":419,"upp":83,"appr":18},{"n":74,"admit":12.8,"gpa":3.874,"dpe":0.023,"apps":7772,"adm":629,"upp":69,"appr":17},{"n":47,"admit":12.0,"gpa":3.931,"dpe":0.021,"apps":5766,"adm":485,"upp":55,"appr":17},{"n":15,"admit":12.7,"gpa":3.939,"dpe":0.021,"apps":1907,"adm":198,"upp":40,"appr":17}],[{"n":62,"admit":10.9,"gpa":3.763,"dpe":0.029,"apps":8174,"adm":686,"upp":86,"appr":25},{"n":66,"admit":10.8,"gpa":3.841,"dpe":0.029,"apps":9260,"adm":785,"upp":73,"appr":26},{"n":44,"admit":10.8,"gpa":3.873,"dpe":0.028,"apps":7678,"adm":662,"upp":56,"appr":26},{"n":20,"admit":10.7,"gpa":3.958,"dpe":0.028,"apps":4555,"adm":409,"upp":37,"appr":26}],[{"n":58,"admit":11.1,"gpa":3.743,"dpe":0.037,"apps":8601,"adm":711,"upp":88,"appr":32},{"n":46,"admit":11.3,"gpa":3.786,"dpe":0.036,"apps":7439,"adm":623,"upp":82,"appr":32},{"n":56,"admit":11.2,"gpa":3.936,"dpe":0.037,"apps":13403,"adm":1256,"upp":51,"appr":32},{"n":31,"admit":9.6,"gpa":3.933,"dpe":0.031,"apps":9780,"adm":897,"upp":39,"appr":32}],[{"n":49,"admit":12.0,"gpa":3.673,"dpe":0.049,"apps":7664,"adm":714,"upp":90,"appr":39},{"n":36,"admit":12.2,"gpa":3.835,"dpe":0.05,"apps":7231,"adm":782,"upp":80,"appr":40},{"n":59,"admit":10.0,"gpa":3.881,"dpe":0.04,"apps":14116,"adm":1269,"upp":60,"appr":40},{"n":48,"admit":9.9,"gpa":3.922,"dpe":0.041,"apps":14793,"adm":1331,"upp":38,"appr":41}],[{"n":15,"admit":14.1,"gpa":3.735,"dpe":0.073,"apps":2576,"adm":266,"upp":87,"appr":52},{"n":18,"admit":12.9,"gpa":3.732,"dpe":0.098,"apps":3610,"adm":428,"upp":80,"appr":55},{"n":33,"admit":10.7,"gpa":3.86,"dpe":0.056,"apps":11164,"adm":1129,"upp":65,"appr":52},{"n":126,"admit":10.0,"gpa":3.947,"dpe":0.061,"apps":70211,"adm":6342,"upp":32,"appr":61}]],"within":[-0.106,-0.037,-0.061,-0.241,-0.283],"r_app":-0.127,"r_ach_appr":0.528,"over100":1,"n":959}}},"San Diego":{"n":1047,"groups":[{"lo":5,"hi":31},{"lo":31,"hi":42},{"lo":42,"hi":56},{"lo":56,"hi":98}],"r_raw":-0.537,"r_upp":-0.067,"r_ach_gpa":0.556,"den":{"cohort":{"bands":[{"lo":1,"hi":8},{"lo":8,"hi":13},{"lo":13,"hi":19},{"lo":19,"hi":29},{"lo":29,"hi":101}],"cells":[[{"n":102,"admit":40.4,"gpa":3.692,"dpe":0.071,"apps":6754,"adm":2570,"upp":84,"appr":6},{"n":75,"admit":34.1,"gpa":3.739,"dpe":0.057,"apps":5369,"adm":1582,"upp":71,"appr":6},{"n":29,"admit":31.1,"gpa":3.784,"dpe":0.044,"apps":2023,"adm":544,"upp":60,"appr":6},null],[{"n":83,"admit":39.9,"gpa":3.635,"dpe":0.102,"apps":10549,"adm":4148,"upp":87,"appr":11},{"n":68,"admit":33.3,"gpa":3.716,"dpe":0.08,"apps":7004,"adm":2228,"upp":73,"appr":10},{"n":50,"admit":26.0,"gpa":3.792,"dpe":0.058,"apps":7238,"adm":1782,"upp":54,"appr":11},{"n":8,"admit":26.5,"gpa":3.835,"dpe":0.049,"apps":1181,"adm":289,"upp":47,"appr":11}],[{"n":54,"admit":39.6,"gpa":3.611,"dpe":0.108,"apps":6820,"adm":2602,"upp":90,"appr":15},{"n":72,"admit":34.7,"gpa":3.713,"dpe":0.097,"apps":11902,"adm":3954,"upp":79,"appr":15},{"n":64,"admit":28.8,"gpa":3.774,"dpe":0.076,"apps":10943,"adm":2783,"upp":60,"appr":16},{"n":19,"admit":25.1,"gpa":3.827,"dpe":0.068,"apps":3217,"adm":756,"upp":41,"appr":16}],[{"n":18,"admit":37.7,"gpa":3.621,"dpe":0.131,"apps":3253,"adm":1206,"upp":89,"appr":21},{"n":39,"admit":37.2,"gpa":3.675,"dpe":0.126,"apps":6250,"adm":2342,"upp":79,"appr":22},{"n":83,"admit":29.2,"gpa":3.784,"dpe":0.099,"apps":21202,"adm":5451,"upp":58,"appr":23},{"n":69,"admit":24.0,"gpa":3.844,"dpe":0.085,"apps":22606,"adm":5246,"upp":41,"appr":23}],[null,{"n":9,"admit":37.7,"gpa":3.66,"dpe":0.145,"apps":1235,"adm":484,"upp":83,"appr":35},{"n":34,"admit":28.6,"gpa":3.785,"dpe":0.126,"apps":8356,"adm":2263,"upp":60,"appr":36},{"n":162,"admit":22.1,"gpa":3.858,"dpe":0.12,"apps":81971,"adm":16125,"upp":33,"appr":44}]],"within":[-0.383,-0.468,-0.432,-0.455,-0.399],"r_app":-0.408,"r_ach_appr":0.737,"over100":1,"n":1047},"ag":{"bands":[{"lo":6,"hi":19},{"lo":19,"hi":25},{"lo":25,"hi":32},{"lo":32,"hi":42},{"lo":42,"hi":115}],"cells":[[{"n":91,"admit":40.2,"gpa":3.685,"dpe":0.061,"apps":5700,"adm":2127,"upp":86,"appr":15},{"n":66,"admit":34.6,"gpa":3.729,"dpe":0.049,"apps":4454,"adm":1303,"upp":75,"appr":14},{"n":41,"admit":31.5,"gpa":3.775,"dpe":0.043,"apps":3525,"adm":898,"upp":60,"appr":14},{"n":12,"admit":25.1,"gpa":3.808,"dpe":0.039,"apps":1253,"adm":290,"upp":39,"appr":15}],[{"n":73,"admit":40.1,"gpa":3.646,"dpe":0.089,"apps":7690,"adm":3018,"upp":87,"appr":22},{"n":73,"admit":35.0,"gpa":3.708,"dpe":0.076,"apps":7819,"adm":2533,"upp":75,"appr":21},{"n":52,"admit":30.2,"gpa":3.756,"dpe":0.068,"apps":7396,"adm":2024,"upp":63,"appr":22},{"n":11,"admit":31.6,"gpa":3.879,"dpe":0.071,"apps":1645,"adm":470,"upp":44,"appr":22}],[{"n":56,"admit":39.3,"gpa":3.609,"dpe":0.111,"apps":7282,"adm":2834,"upp":87,"appr":28},{"n":66,"admit":35.0,"gpa":3.705,"dpe":0.097,"apps":9205,"adm":3147,"upp":76,"appr":28},{"n":63,"admit":28.9,"gpa":3.779,"dpe":0.082,"apps":10987,"adm":2931,"upp":59,"appr":28},{"n":24,"admit":25.6,"gpa":3.816,"dpe":0.077,"apps":6637,"adm":1619,"upp":47,"appr":29}],[{"n":28,"admit":39.3,"gpa":3.638,"dpe":0.138,"apps":4583,"adm":1687,"upp":85,"appr":36},{"n":44,"admit":33.5,"gpa":3.714,"dpe":0.121,"apps":7769,"adm":2681,"upp":77,"appr":36},{"n":67,"admit":26.6,"gpa":3.8,"dpe":0.097,"apps":16608,"adm":4047,"upp":53,"appr":36},{"n":70,"admit":24.3,"gpa":3.827,"dpe":0.089,"apps":20083,"adm":4556,"upp":39,"appr":37}],[{"n":14,"admit":37.7,"gpa":3.624,"dpe":0.213,"apps":2828,"adm":1125,"upp":90,"appr":55},{"n":14,"admit":35.2,"gpa":3.718,"dpe":0.171,"apps":2513,"adm":926,"upp":68,"appr":48},{"n":37,"admit":26.3,"gpa":3.808,"dpe":0.124,"apps":11246,"adm":2923,"upp":57,"appr":48},{"n":145,"admit":21.1,"gpa":3.868,"dpe":0.122,"apps":79686,"adm":15558,"upp":32,"appr":59}]],"within":[-0.435,-0.286,-0.401,-0.439,-0.52],"r_app":-0.4,"r_ach_appr":0.624,"over100":1,"n":1047}}},"Santa Barbara":{"n":1013,"groups":[{"lo":9,"hi":32},{"lo":32,"hi":42},{"lo":42,"hi":57},{"lo":57,"hi":98}],"r_raw":-0.429,"r_upp":-0.292,"r_ach_gpa":0.594,"den":{"cohort":{"bands":[{"lo":1,"hi":7},{"lo":7,"hi":10},{"lo":10,"hi":15},{"lo":15,"hi":25},{"lo":25,"hi":77}],"cells":[[{"n":114,"admit":51.9,"gpa":3.753,"dpe":0.073,"apps":6859,"adm":3481,"upp":84,"appr":5},{"n":65,"admit":51.5,"gpa":3.836,"dpe":0.068,"apps":3940,"adm":1950,"upp":71,"appr":5},{"n":21,"admit":51.9,"gpa":3.898,"dpe":0.063,"apps":1431,"adm":714,"upp":64,"appr":5},null],[{"n":70,"admit":37.9,"gpa":3.713,"dpe":0.074,"apps":7068,"adm":2659,"upp":86,"appr":8},{"n":78,"admit":39.4,"gpa":3.823,"dpe":0.072,"apps":7450,"adm":2885,"upp":72,"appr":8},{"n":46,"admit":37.8,"gpa":3.863,"dpe":0.065,"apps":5311,"adm":1996,"upp":60,"appr":8},{"n":8,"admit":39.9,"gpa":3.894,"dpe":0.063,"apps":1102,"adm":416,"upp":54,"appr":9}],[{"n":44,"admit":31.5,"gpa":3.692,"dpe":0.075,"apps":4588,"adm":1425,"upp":89,"appr":12},{"n":68,"admit":33.9,"gpa":3.833,"dpe":0.083,"apps":7922,"adm":2692,"upp":76,"appr":12},{"n":64,"admit":32.8,"gpa":3.9,"dpe":0.073,"apps":9136,"adm":2967,"upp":59,"appr":12},{"n":27,"admit":32.1,"gpa":3.907,"dpe":0.066,"apps":4478,"adm":1354,"upp":50,"appr":13}],[{"n":24,"admit":29.1,"gpa":3.722,"dpe":0.079,"apps":2273,"adm":634,"upp":90,"appr":19},{"n":33,"admit":31.9,"gpa":3.808,"dpe":0.093,"apps":4676,"adm":1538,"upp":79,"appr":19},{"n":81,"admit":28.8,"gpa":3.905,"dpe":0.088,"apps":17321,"adm":4898,"upp":55,"appr":20},{"n":64,"admit":28.2,"gpa":3.927,"dpe":0.08,"apps":15166,"adm":4255,"upp":42,"appr":20}],[null,{"n":9,"admit":30.8,"gpa":3.762,"dpe":0.1,"apps":798,"adm":246,"upp":78,"appr":28},{"n":41,"admit":28.8,"gpa":3.935,"dpe":0.114,"apps":11330,"adm":3201,"upp":52,"appr":29},{"n":151,"admit":28.9,"gpa":3.969,"dpe":0.149,"apps":73492,"adm":20499,"upp":29,"appr":41}]],"within":[-0.066,0.05,0.059,-0.118,0.075],"r_app":-0.07,"r_ach_appr":0.751,"over100":0,"n":1013},"ag":{"bands":[{"lo":4,"hi":15},{"lo":15,"hi":20},{"lo":20,"hi":26},{"lo":26,"hi":36},{"lo":36,"hi":95}],"cells":[[{"n":81,"admit":51.0,"gpa":3.753,"dpe":0.059,"apps":5246,"adm":2545,"upp":84,"appr":11},{"n":76,"admit":47.9,"gpa":3.825,"dpe":0.059,"apps":5562,"adm":2491,"upp":73,"appr":12},{"n":36,"admit":45.4,"gpa":3.87,"dpe":0.054,"apps":3088,"adm":1346,"upp":66,"appr":12},{"n":10,"admit":37.3,"gpa":3.852,"dpe":0.045,"apps":908,"adm":319,"upp":55,"appr":12}],[{"n":82,"admit":41.9,"gpa":3.695,"dpe":0.072,"apps":6193,"adm":2530,"upp":89,"appr":17},{"n":56,"admit":39.6,"gpa":3.804,"dpe":0.067,"apps":4876,"adm":1870,"upp":76,"appr":17},{"n":48,"admit":35.0,"gpa":3.868,"dpe":0.061,"apps":5802,"adm":1986,"upp":62,"appr":17},{"n":16,"admit":34.6,"gpa":3.937,"dpe":0.06,"apps":2567,"adm":825,"upp":49,"appr":17}],[{"n":54,"admit":35.4,"gpa":3.741,"dpe":0.079,"apps":5267,"adm":1850,"upp":87,"appr":22},{"n":61,"admit":36.0,"gpa":3.827,"dpe":0.082,"apps":6005,"adm":2080,"upp":77,"appr":23},{"n":55,"admit":32.1,"gpa":3.877,"dpe":0.073,"apps":7964,"adm":2520,"upp":61,"appr":23},{"n":33,"admit":29.4,"gpa":3.901,"dpe":0.067,"apps":5188,"adm":1494,"upp":47,"appr":23}],[{"n":30,"admit":33.6,"gpa":3.719,"dpe":0.102,"apps":3051,"adm":971,"upp":87,"appr":30},{"n":51,"admit":33.7,"gpa":3.834,"dpe":0.1,"apps":7346,"adm":2547,"upp":72,"appr":29},{"n":68,"admit":30.7,"gpa":3.917,"dpe":0.095,"apps":13287,"adm":3941,"upp":54,"appr":31},{"n":53,"admit":29.9,"gpa":3.94,"dpe":0.092,"apps":13167,"adm":3807,"upp":42,"appr":31}],[null,{"n":9,"admit":32.0,"gpa":3.897,"dpe":0.143,"apps":997,"adm":323,"upp":61,"appr":45},{"n":46,"admit":27.7,"gpa":3.961,"dpe":0.118,"apps":14388,"adm":3983,"upp":45,"appr":43},{"n":141,"admit":28.2,"gpa":3.97,"dpe":0.153,"apps":72654,"adm":20170,"upp":28,"appr":54}]],"within":[-0.252,-0.291,-0.299,-0.233,0.038],"r_app":-0.152,"r_ach_appr":0.645,"over100":0,"n":1013}}},"Irvine":{"n":1018,"groups":[{"lo":7,"hi":32},{"lo":32,"hi":42},{"lo":42,"hi":57},{"lo":57,"hi":98}],"r_raw":0.08,"r_upp":0.101,"r_ach_gpa":0.58,"den":{"cohort":{"bands":[{"lo":1,"hi":9},{"lo":9,"hi":15},{"lo":15,"hi":20},{"lo":20,"hi":30},{"lo":30,"hi":82}],"cells":[[{"n":81,"admit":25.9,"gpa":3.76,"dpe":0.049,"apps":5524,"adm":1107,"upp":83,"appr":6},{"n":81,"admit":25.6,"gpa":3.839,"dpe":0.043,"apps":6028,"adm":1227,"upp":67,"appr":6},{"n":35,"admit":25.1,"gpa":3.915,"dpe":0.036,"apps":2800,"adm":570,"upp":52,"appr":7},null],[{"n":76,"admit":22.4,"gpa":3.713,"dpe":0.063,"apps":10071,"adm":2015,"upp":85,"appr":12},{"n":61,"admit":21.7,"gpa":3.805,"dpe":0.056,"apps":8419,"adm":1711,"upp":73,"appr":11},{"n":55,"admit":23.2,"gpa":3.907,"dpe":0.053,"apps":8013,"adm":1756,"upp":50,"appr":12},{"n":11,"admit":27.5,"gpa":3.941,"dpe":0.054,"apps":1587,"adm":396,"upp":42,"appr":12}],[{"n":55,"admit":21.0,"gpa":3.652,"dpe":0.077,"apps":9963,"adm":2014,"upp":91,"appr":17},{"n":63,"admit":20.8,"gpa":3.79,"dpe":0.071,"apps":12425,"adm":2557,"upp":78,"appr":17},{"n":57,"admit":21.3,"gpa":3.883,"dpe":0.064,"apps":12832,"adm":2645,"upp":56,"appr":17},{"n":29,"admit":25.3,"gpa":3.937,"dpe":0.069,"apps":5993,"adm":1421,"upp":34,"appr":18}],[{"n":34,"admit":20.6,"gpa":3.635,"dpe":0.078,"apps":6091,"adm":1226,"upp":93,"appr":24},{"n":32,"admit":23.5,"gpa":3.736,"dpe":0.083,"apps":5735,"adm":1292,"upp":84,"appr":24},{"n":67,"admit":21.1,"gpa":3.867,"dpe":0.081,"apps":20171,"adm":4119,"upp":57,"appr":25},{"n":70,"admit":24.7,"gpa":3.935,"dpe":0.091,"apps":24504,"adm":6236,"upp":36,"appr":25}],[{"n":9,"admit":19.1,"gpa":3.678,"dpe":0.103,"apps":1034,"adm":196,"upp":94,"appr":39},{"n":17,"admit":20.9,"gpa":3.756,"dpe":0.097,"apps":2403,"adm":432,"upp":90,"appr":40},{"n":40,"admit":21.4,"gpa":3.787,"dpe":0.104,"apps":7118,"adm":1303,"upp":77,"appr":40},{"n":138,"admit":24.1,"gpa":3.937,"dpe":0.14,"apps":71541,"adm":16406,"upp":36,"appr":47}]],"within":[0.001,0.128,0.158,0.134,0.213],"r_app":0.129,"r_ach_appr":0.661,"over100":0,"n":1018},"ag":{"bands":[{"lo":6,"hi":20},{"lo":20,"hi":28},{"lo":28,"hi":35},{"lo":35,"hi":44},{"lo":44,"hi":121}],"cells":[[{"n":69,"admit":25.5,"gpa":3.762,"dpe":0.04,"apps":4713,"adm":934,"upp":83,"appr":15},{"n":72,"admit":25.4,"gpa":3.851,"dpe":0.037,"apps":5321,"adm":1063,"upp":67,"appr":15},{"n":49,"admit":25.9,"gpa":3.914,"dpe":0.039,"apps":4681,"adm":1065,"upp":53,"appr":15},{"n":14,"admit":26.7,"gpa":3.92,"dpe":0.041,"apps":1429,"adm":341,"upp":42,"appr":15}],[{"n":58,"admit":23.0,"gpa":3.723,"dpe":0.056,"apps":6473,"adm":1261,"upp":85,"appr":24},{"n":68,"admit":21.9,"gpa":3.814,"dpe":0.053,"apps":8955,"adm":1772,"upp":72,"appr":24},{"n":55,"admit":23.3,"gpa":3.903,"dpe":0.056,"apps":8719,"adm":1946,"upp":51,"appr":24},{"n":22,"admit":26.7,"gpa":3.954,"dpe":0.065,"apps":3701,"adm":927,"upp":32,"appr":23}],[{"n":53,"admit":21.9,"gpa":3.685,"dpe":0.071,"apps":8323,"adm":1701,"upp":89,"appr":32},{"n":55,"admit":23.3,"gpa":3.778,"dpe":0.075,"apps":9227,"adm":2051,"upp":80,"appr":32},{"n":57,"admit":18.9,"gpa":3.878,"dpe":0.06,"apps":13256,"adm":2357,"upp":54,"appr":31},{"n":39,"admit":24.7,"gpa":3.944,"dpe":0.077,"apps":12155,"adm":3084,"upp":33,"appr":31}],[{"n":54,"admit":21.6,"gpa":3.656,"dpe":0.085,"apps":8773,"adm":1816,"upp":90,"appr":39},{"n":42,"admit":20.8,"gpa":3.748,"dpe":0.082,"apps":8375,"adm":1751,"upp":83,"appr":39},{"n":49,"admit":21.8,"gpa":3.864,"dpe":0.086,"apps":12881,"adm":2753,"upp":60,"appr":39},{"n":58,"admit":24.4,"gpa":3.944,"dpe":0.096,"apps":19655,"adm":4710,"upp":36,"appr":40}],[{"n":21,"admit":19.5,"gpa":3.62,"dpe":0.104,"apps":4401,"adm":846,"upp":93,"appr":52},{"n":17,"admit":20.2,"gpa":3.728,"dpe":0.109,"apps":3132,"adm":582,"upp":83,"appr":54},{"n":44,"admit":21.3,"gpa":3.792,"dpe":0.109,"apps":11397,"adm":2272,"upp":74,"appr":51},{"n":122,"admit":23.8,"gpa":3.929,"dpe":0.146,"apps":67291,"adm":15508,"upp":37,"appr":61}]],"within":[0.064,0.131,0.053,0.12,0.255],"r_app":0.144,"r_ach_appr":0.505,"over100":3,"n":1018}}},"Davis":{"n":1067,"groups":[{"lo":0,"hi":31},{"lo":31,"hi":41},{"lo":41,"hi":56},{"lo":56,"hi":98}],"r_raw":-0.217,"r_upp":0.0,"r_ach_gpa":0.573,"den":{"cohort":{"bands":[{"lo":2,"hi":6},{"lo":6,"hi":9},{"lo":9,"hi":14},{"lo":14,"hi":23},{"lo":23,"hi":80}],"cells":[[{"n":97,"admit":42.6,"gpa":3.823,"dpe":0.058,"apps":5692,"adm":2374,"upp":86,"appr":5},{"n":75,"admit":43.1,"gpa":3.907,"dpe":0.048,"apps":4277,"adm":1748,"upp":76,"appr":5},{"n":36,"admit":41.9,"gpa":3.94,"dpe":0.045,"apps":2355,"adm":965,"upp":66,"appr":5},null],[{"n":73,"admit":41.6,"gpa":3.816,"dpe":0.09,"apps":5889,"adm":2345,"upp":85,"appr":8},{"n":69,"admit":41.8,"gpa":3.892,"dpe":0.076,"apps":5948,"adm":2441,"upp":75,"appr":8},{"n":49,"admit":41.1,"gpa":3.965,"dpe":0.064,"apps":4866,"adm":1955,"upp":62,"appr":7},{"n":22,"admit":39.6,"gpa":3.975,"dpe":0.056,"apps":2267,"adm":872,"upp":55,"appr":8}],[{"n":54,"admit":41.4,"gpa":3.815,"dpe":0.114,"apps":5363,"adm":2180,"upp":87,"appr":11},{"n":66,"admit":42.7,"gpa":3.886,"dpe":0.104,"apps":6958,"adm":2940,"upp":71,"appr":11},{"n":58,"admit":41.6,"gpa":3.955,"dpe":0.085,"apps":6727,"adm":2729,"upp":58,"appr":11},{"n":35,"admit":39.0,"gpa":4.001,"dpe":0.068,"apps":5968,"adm":2274,"upp":47,"appr":11}],[{"n":27,"admit":39.7,"gpa":3.773,"dpe":0.146,"apps":2708,"adm":1069,"upp":84,"appr":18},{"n":41,"admit":41.5,"gpa":3.868,"dpe":0.129,"apps":4850,"adm":1986,"upp":74,"appr":17},{"n":79,"admit":41.0,"gpa":3.968,"dpe":0.112,"apps":13640,"adm":5516,"upp":57,"appr":18},{"n":66,"admit":39.5,"gpa":3.993,"dpe":0.104,"apps":13523,"adm":5143,"upp":38,"appr":19}],[{"n":16,"admit":39.2,"gpa":3.761,"dpe":0.195,"apps":1461,"adm":611,"upp":85,"appr":28},{"n":16,"admit":41.9,"gpa":3.843,"dpe":0.191,"apps":2128,"adm":888,"upp":81,"appr":30},{"n":44,"admit":37.3,"gpa":3.952,"dpe":0.172,"apps":12200,"adm":4359,"upp":51,"appr":32},{"n":138,"admit":35.7,"gpa":4.009,"dpe":0.174,"apps":63000,"adm":19687,"upp":29,"appr":40}]],"within":[-0.054,-0.066,-0.066,-0.059,-0.182],"r_app":-0.05,"r_ach_appr":0.632,"over100":0,"n":1067},"ag":{"bands":[{"lo":5,"hi":13},{"lo":13,"hi":18},{"lo":18,"hi":26},{"lo":26,"hi":38},{"lo":38,"hi":120}],"cells":[[{"n":74,"admit":42.0,"gpa":3.819,"dpe":0.043,"apps":4128,"adm":1638,"upp":88,"appr":10},{"n":73,"admit":41.9,"gpa":3.903,"dpe":0.042,"apps":4520,"adm":1817,"upp":78,"appr":10},{"n":50,"admit":41.3,"gpa":3.939,"dpe":0.043,"apps":4163,"adm":1664,"upp":68,"appr":10},{"n":17,"admit":38.6,"gpa":3.961,"dpe":0.039,"apps":1725,"adm":642,"upp":57,"appr":10}],[{"n":65,"admit":41.7,"gpa":3.802,"dpe":0.065,"apps":4785,"adm":1935,"upp":88,"appr":15},{"n":62,"admit":43.9,"gpa":3.887,"dpe":0.07,"apps":4508,"adm":1913,"upp":77,"appr":16},{"n":55,"admit":42.7,"gpa":3.955,"dpe":0.066,"apps":4749,"adm":1991,"upp":68,"appr":15},{"n":31,"admit":38.4,"gpa":3.996,"dpe":0.058,"apps":4341,"adm":1634,"upp":48,"appr":15}],[{"n":42,"admit":42.9,"gpa":3.813,"dpe":0.099,"apps":3543,"adm":1482,"upp":84,"appr":23},{"n":58,"admit":43.9,"gpa":3.883,"dpe":0.095,"apps":5361,"adm":2314,"upp":73,"appr":22},{"n":65,"admit":42.6,"gpa":3.984,"dpe":0.093,"apps":9125,"adm":3826,"upp":56,"appr":22},{"n":48,"admit":41.5,"gpa":3.981,"dpe":0.09,"apps":7998,"adm":3109,"upp":45,"appr":22}],[{"n":50,"admit":39.7,"gpa":3.827,"dpe":0.127,"apps":4810,"adm":1937,"upp":82,"appr":32},{"n":51,"admit":40.0,"gpa":3.887,"dpe":0.128,"apps":6076,"adm":2426,"upp":68,"appr":32},{"n":49,"admit":39.8,"gpa":3.96,"dpe":0.124,"apps":8797,"adm":3497,"upp":49,"appr":31},{"n":63,"admit":40.4,"gpa":4.018,"dpe":0.128,"apps":15024,"adm":5806,"upp":35,"appr":32}],[{"n":36,"admit":41.8,"gpa":3.782,"dpe":0.208,"apps":3847,"adm":1587,"upp":83,"appr":49},{"n":23,"admit":40.8,"gpa":3.861,"dpe":0.2,"apps":3696,"adm":1533,"upp":73,"appr":48},{"n":47,"admit":35.7,"gpa":3.946,"dpe":0.175,"apps":12954,"adm":4546,"upp":49,"appr":49},{"n":108,"admit":33.4,"gpa":4.003,"dpe":0.183,"apps":56243,"adm":16995,"upp":26,"appr":56}]],"within":[-0.071,-0.112,-0.069,0.098,-0.407],"r_app":-0.121,"r_ach_appr":0.394,"over100":2,"n":1067}}},"Santa Cruz":{"n":989,"groups":[{"lo":5,"hi":32},{"lo":32,"hi":42},{"lo":42,"hi":57},{"lo":57,"hi":98}],"r_raw":0.448,"r_upp":0.017,"r_ach_gpa":0.57,"den":{"cohort":{"bands":[{"lo":1,"hi":5},{"lo":5,"hi":8},{"lo":8,"hi":12},{"lo":12,"hi":20},{"lo":20,"hi":70}],"cells":[[{"n":99,"admit":55.2,"gpa":3.718,"dpe":0.065,"apps":5533,"adm":3044,"upp":84,"appr":4},{"n":65,"admit":60.7,"gpa":3.811,"dpe":0.06,"apps":3474,"adm":2092,"upp":74,"appr":4},{"n":27,"admit":62.8,"gpa":3.831,"dpe":0.059,"apps":1663,"adm":1028,"upp":66,"appr":4},null],[{"n":62,"admit":56.6,"gpa":3.757,"dpe":0.091,"apps":4314,"adm":2461,"upp":85,"appr":6},{"n":65,"admit":60.8,"gpa":3.805,"dpe":0.087,"apps":5058,"adm":3069,"upp":74,"appr":6},{"n":45,"admit":64.4,"gpa":3.844,"dpe":0.076,"apps":3894,"adm":2488,"upp":61,"appr":6},{"n":26,"admit":64.0,"gpa":3.915,"dpe":0.07,"apps":2180,"adm":1399,"upp":50,"appr":6}],[{"n":51,"admit":53.3,"gpa":3.692,"dpe":0.13,"apps":4450,"adm":2381,"upp":89,"appr":9},{"n":59,"admit":60.4,"gpa":3.791,"dpe":0.117,"apps":4947,"adm":3047,"upp":73,"appr":9},{"n":59,"admit":67.6,"gpa":3.913,"dpe":0.118,"apps":7031,"adm":4724,"upp":53,"appr":9},{"n":28,"admit":67.3,"gpa":3.921,"dpe":0.106,"apps":4641,"adm":3079,"upp":43,"appr":10}],[{"n":23,"admit":50.4,"gpa":3.71,"dpe":0.121,"apps":1611,"adm":868,"upp":90,"appr":16},{"n":43,"admit":59.1,"gpa":3.814,"dpe":0.159,"apps":5078,"adm":3158,"upp":77,"appr":15},{"n":70,"admit":63.9,"gpa":3.889,"dpe":0.155,"apps":11062,"adm":7324,"upp":55,"appr":15},{"n":62,"admit":68.4,"gpa":3.934,"dpe":0.149,"apps":11920,"adm":8151,"upp":37,"appr":16}],[{"n":14,"admit":52.6,"gpa":3.734,"dpe":0.206,"apps":1159,"adm":636,"upp":87,"appr":27},{"n":14,"admit":56.0,"gpa":3.793,"dpe":0.218,"apps":1233,"adm":713,"upp":75,"appr":27},{"n":46,"admit":63.4,"gpa":3.914,"dpe":0.236,"apps":9870,"adm":6583,"upp":53,"appr":27},{"n":124,"admit":67.7,"gpa":3.954,"dpe":0.288,"apps":47366,"adm":31947,"upp":28,"appr":34}]],"within":[0.286,0.374,0.466,0.451,0.475],"r_app":0.431,"r_ach_appr":0.606,"over100":0,"n":989},"ag":{"bands":[{"lo":4,"hi":11},{"lo":11,"hi":16},{"lo":16,"hi":20},{"lo":20,"hi":30},{"lo":30,"hi":93}],"cells":[[{"n":61,"admit":54.2,"gpa":3.709,"dpe":0.047,"apps":3392,"adm":1831,"upp":86,"appr":9},{"n":67,"admit":60.2,"gpa":3.803,"dpe":0.054,"apps":3772,"adm":2255,"upp":76,"appr":9},{"n":47,"admit":63.8,"gpa":3.843,"dpe":0.06,"apps":3339,"adm":2105,"upp":67,"appr":9},{"n":23,"admit":62.4,"gpa":3.881,"dpe":0.053,"apps":1907,"adm":1203,"upp":51,"appr":8}],[{"n":68,"admit":54.4,"gpa":3.711,"dpe":0.074,"apps":4467,"adm":2442,"upp":87,"appr":13},{"n":57,"admit":61.1,"gpa":3.794,"dpe":0.082,"apps":4339,"adm":2672,"upp":77,"appr":13},{"n":49,"admit":64.6,"gpa":3.886,"dpe":0.088,"apps":5302,"adm":3455,"upp":56,"appr":14},{"n":25,"admit":68.1,"gpa":3.922,"dpe":0.09,"apps":3006,"adm":2025,"upp":48,"appr":13}],[{"n":54,"admit":55.8,"gpa":3.743,"dpe":0.099,"apps":3724,"adm":2031,"upp":86,"appr":18},{"n":50,"admit":59.1,"gpa":3.808,"dpe":0.107,"apps":4037,"adm":2406,"upp":72,"appr":18},{"n":51,"admit":61.9,"gpa":3.838,"dpe":0.114,"apps":5902,"adm":3739,"upp":62,"appr":18},{"n":41,"admit":67.3,"gpa":3.911,"dpe":0.119,"apps":6568,"adm":4440,"upp":44,"appr":18}],[{"n":42,"admit":53.0,"gpa":3.733,"dpe":0.131,"apps":3097,"adm":1686,"upp":86,"appr":25},{"n":49,"admit":58.6,"gpa":3.799,"dpe":0.146,"apps":4648,"adm":2833,"upp":74,"appr":25},{"n":53,"admit":66.3,"gpa":3.914,"dpe":0.16,"apps":7581,"adm":5105,"upp":53,"appr":24},{"n":55,"admit":68.5,"gpa":3.952,"dpe":0.179,"apps":10969,"adm":7509,"upp":32,"appr":26}],[{"n":24,"admit":55.9,"gpa":3.725,"dpe":0.234,"apps":2387,"adm":1400,"upp":87,"appr":42},{"n":23,"admit":62.6,"gpa":3.837,"dpe":0.24,"apps":2994,"adm":1913,"upp":69,"appr":38},{"n":47,"admit":66.5,"gpa":3.945,"dpe":0.261,"apps":11396,"adm":7743,"upp":45,"appr":39},{"n":103,"admit":67.3,"gpa":3.955,"dpe":0.309,"apps":44167,"adm":29711,"upp":27,"appr":46}]],"within":[0.378,0.491,0.38,0.477,0.379],"r_app":0.412,"r_ach_appr":0.409,"over100":0,"n":989}}},"Riverside":{"n":887,"groups":[{"lo":9,"hi":32},{"lo":32,"hi":43},{"lo":43,"hi":58},{"lo":58,"hi":98}],"r_raw":0.489,"r_upp":0.112,"r_ach_gpa":0.549,"den":{"cohort":{"bands":[{"lo":2,"hi":6},{"lo":6,"hi":10},{"lo":10,"hi":14},{"lo":14,"hi":22},{"lo":22,"hi":67}],"cells":[[{"n":53,"admit":74.0,"gpa":3.665,"dpe":0.08,"apps":2735,"adm":2014,"upp":81,"appr":4},{"n":68,"admit":77.9,"gpa":3.709,"dpe":0.076,"apps":3592,"adm":2773,"upp":68,"appr":4},{"n":44,"admit":78.6,"gpa":3.742,"dpe":0.065,"apps":2410,"adm":1888,"upp":50,"appr":4},{"n":13,"admit":79.4,"gpa":3.785,"dpe":0.05,"apps":658,"adm":517,"upp":34,"appr":4}],[{"n":49,"admit":71.3,"gpa":3.592,"dpe":0.141,"apps":4617,"adm":3316,"upp":86,"appr":8},{"n":47,"admit":75.0,"gpa":3.651,"dpe":0.129,"apps":4615,"adm":3491,"upp":75,"appr":8},{"n":50,"admit":80.9,"gpa":3.738,"dpe":0.114,"apps":5432,"adm":4367,"upp":47,"appr":8},{"n":31,"admit":81.6,"gpa":3.774,"dpe":0.101,"apps":3268,"adm":2670,"upp":28,"appr":8}],[{"n":45,"admit":70.0,"gpa":3.548,"dpe":0.179,"apps":5733,"adm":4006,"upp":91,"appr":12},{"n":44,"admit":73.9,"gpa":3.63,"dpe":0.183,"apps":5999,"adm":4444,"upp":78,"appr":12},{"n":51,"admit":80.3,"gpa":3.734,"dpe":0.145,"apps":7557,"adm":6081,"upp":53,"appr":12},{"n":37,"admit":82.0,"gpa":3.766,"dpe":0.152,"apps":6156,"adm":5065,"upp":34,"appr":12}],[{"n":49,"admit":69.4,"gpa":3.514,"dpe":0.234,"apps":6984,"adm":4847,"upp":92,"appr":18},{"n":34,"admit":72.6,"gpa":3.554,"dpe":0.203,"apps":5131,"adm":3777,"upp":88,"appr":17},{"n":44,"admit":78.0,"gpa":3.683,"dpe":0.215,"apps":9440,"adm":7434,"upp":65,"appr":17},{"n":50,"admit":83.2,"gpa":3.802,"dpe":0.207,"apps":12191,"adm":10034,"upp":33,"appr":18}],[{"n":26,"admit":65.5,"gpa":3.463,"dpe":0.285,"apps":4015,"adm":2657,"upp":93,"appr":29},{"n":29,"admit":72.9,"gpa":3.566,"dpe":0.288,"apps":4600,"adm":3277,"upp":89,"appr":32},{"n":32,"admit":71.5,"gpa":3.56,"dpe":0.262,"apps":4780,"adm":3511,"upp":84,"appr":32},{"n":91,"admit":81.3,"gpa":3.786,"dpe":0.357,"apps":37158,"adm":30588,"upp":38,"appr":35}]],"within":[0.269,0.51,0.59,0.636,0.596],"r_app":0.537,"r_ach_appr":0.405,"over100":0,"n":887},"ag":{"bands":[{"lo":4,"hi":12},{"lo":12,"hi":18},{"lo":18,"hi":25},{"lo":25,"hi":34},{"lo":34,"hi":111}],"cells":[[{"n":42,"admit":73.9,"gpa":3.662,"dpe":0.064,"apps":1895,"adm":1396,"upp":83,"appr":9},{"n":57,"admit":78.2,"gpa":3.708,"dpe":0.068,"apps":2956,"adm":2281,"upp":68,"appr":9},{"n":52,"admit":79.5,"gpa":3.76,"dpe":0.066,"apps":3069,"adm":2434,"upp":49,"appr":8},{"n":27,"admit":80.9,"gpa":3.792,"dpe":0.068,"apps":1919,"adm":1557,"upp":31,"appr":8}],[{"n":30,"admit":74.5,"gpa":3.632,"dpe":0.11,"apps":2381,"adm":1768,"upp":82,"appr":15},{"n":46,"admit":75.1,"gpa":3.694,"dpe":0.111,"apps":3850,"adm":2917,"upp":71,"appr":15},{"n":62,"admit":80.3,"gpa":3.724,"dpe":0.119,"apps":7127,"adm":5715,"upp":50,"appr":15},{"n":39,"admit":82.5,"gpa":3.79,"dpe":0.122,"apps":5127,"adm":4238,"upp":28,"appr":15}],[{"n":47,"admit":70.6,"gpa":3.571,"dpe":0.15,"apps":5405,"adm":3850,"upp":88,"appr":21},{"n":47,"admit":74.0,"gpa":3.626,"dpe":0.159,"apps":5485,"adm":4064,"upp":82,"appr":22},{"n":42,"admit":80.0,"gpa":3.714,"dpe":0.163,"apps":6483,"adm":5176,"upp":54,"appr":20},{"n":42,"admit":82.1,"gpa":3.779,"dpe":0.176,"apps":8161,"adm":6729,"upp":31,"appr":21}],[{"n":56,"admit":68.9,"gpa":3.527,"dpe":0.2,"apps":6375,"adm":4420,"upp":92,"appr":29},{"n":40,"admit":74.1,"gpa":3.587,"dpe":0.213,"apps":5754,"adm":4304,"upp":84,"appr":29},{"n":38,"admit":75.6,"gpa":3.669,"dpe":0.213,"apps":7332,"adm":5744,"upp":67,"appr":28},{"n":42,"admit":81.2,"gpa":3.777,"dpe":0.241,"apps":10740,"adm":8734,"upp":38,"appr":30}],[{"n":47,"admit":67.1,"gpa":3.488,"dpe":0.294,"apps":8028,"adm":5406,"upp":90,"appr":44},{"n":32,"admit":72.0,"gpa":3.52,"dpe":0.299,"apps":5892,"adm":4196,"upp":87,"appr":41},{"n":27,"admit":73.3,"gpa":3.561,"dpe":0.297,"apps":5608,"adm":4212,"upp":86,"appr":40},{"n":72,"admit":81.8,"gpa":3.787,"dpe":0.392,"apps":33484,"adm":27616,"upp":40,"appr":48}]],"within":[0.313,0.407,0.583,0.519,0.637],"r_app":0.524,"r_ach_appr":0.182,"over100":1,"n":887}}},"Merced":{"n":882,"groups":[{"lo":5,"hi":31},{"lo":31,"hi":42},{"lo":42,"hi":57},{"lo":57,"hi":98}],"r_raw":0.397,"r_upp":0.194,"r_ach_gpa":0.597,"den":{"cohort":{"bands":[{"lo":1,"hi":4},{"lo":4,"hi":5},{"lo":5,"hi":8},{"lo":8,"hi":13},{"lo":13,"hi":47}],"cells":[[{"n":52,"admit":90.9,"gpa":3.804,"dpe":0.084,"apps":2416,"adm":2197,"upp":80,"appr":3},{"n":51,"admit":92.5,"gpa":3.9,"dpe":0.071,"apps":2381,"adm":2204,"upp":68,"appr":3},{"n":48,"admit":93.8,"gpa":3.949,"dpe":0.062,"apps":2414,"adm":2269,"upp":55,"appr":3},{"n":26,"admit":96.1,"gpa":3.961,"dpe":0.053,"apps":1463,"adm":1408,"upp":40,"appr":3}],[{"n":54,"admit":90.1,"gpa":3.795,"dpe":0.114,"apps":3359,"adm":3039,"upp":87,"appr":5},{"n":46,"admit":92.4,"gpa":3.884,"dpe":0.099,"apps":2446,"adm":2259,"upp":72,"appr":5},{"n":51,"admit":94.1,"gpa":3.942,"dpe":0.078,"apps":3270,"adm":3084,"upp":57,"appr":5},{"n":25,"admit":96.3,"gpa":3.99,"dpe":0.072,"apps":1840,"adm":1770,"upp":38,"appr":5}],[{"n":36,"admit":91.5,"gpa":3.755,"dpe":0.148,"apps":2552,"adm":2327,"upp":91,"appr":7},{"n":49,"admit":92.0,"gpa":3.849,"dpe":0.132,"apps":3584,"adm":3303,"upp":78,"appr":6},{"n":45,"admit":95.5,"gpa":3.946,"dpe":0.11,"apps":3762,"adm":3584,"upp":54,"appr":7},{"n":46,"admit":95.6,"gpa":3.99,"dpe":0.088,"apps":4398,"adm":4196,"upp":34,"appr":6}],[{"n":47,"admit":91.4,"gpa":3.74,"dpe":0.205,"apps":3531,"adm":3233,"upp":91,"appr":10},{"n":39,"admit":92.5,"gpa":3.847,"dpe":0.19,"apps":3859,"adm":3565,"upp":82,"appr":10},{"n":41,"admit":94.6,"gpa":3.939,"dpe":0.153,"apps":4655,"adm":4414,"upp":56,"appr":10},{"n":49,"admit":96.1,"gpa":3.97,"dpe":0.13,"apps":5776,"adm":5564,"upp":35,"appr":10}],[{"n":32,"admit":92.5,"gpa":3.771,"dpe":0.318,"apps":3564,"adm":3307,"upp":89,"appr":19},{"n":35,"admit":94.5,"gpa":3.829,"dpe":0.264,"apps":3083,"adm":2900,"upp":86,"appr":21},{"n":35,"admit":93.3,"gpa":3.845,"dpe":0.234,"apps":3384,"adm":3159,"upp":79,"appr":21},{"n":75,"admit":95.8,"gpa":3.98,"dpe":0.256,"apps":17921,"adm":17275,"upp":35,"appr":22}]],"within":[0.378,0.477,0.392,0.429,0.309],"r_app":0.383,"r_ach_appr":0.281,"over100":0,"n":882},"ag":{"bands":[{"lo":3,"hi":8},{"lo":8,"hi":11},{"lo":11,"hi":15},{"lo":15,"hi":21},{"lo":21,"hi":70}],"cells":[[{"n":23,"admit":92.6,"gpa":3.828,"dpe":0.059,"apps":1041,"adm":969,"upp":83,"appr":6},{"n":38,"admit":93.1,"gpa":3.909,"dpe":0.06,"apps":1834,"adm":1706,"upp":70,"appr":6},{"n":63,"admit":94.0,"gpa":3.96,"dpe":0.058,"apps":3592,"adm":3390,"upp":54,"appr":6},{"n":53,"admit":96.0,"gpa":3.984,"dpe":0.06,"apps":3517,"adm":3375,"upp":35,"appr":6}],[{"n":40,"admit":90.7,"gpa":3.783,"dpe":0.085,"apps":2359,"adm":2146,"upp":82,"appr":9},{"n":44,"admit":92.8,"gpa":3.881,"dpe":0.086,"apps":2437,"adm":2260,"upp":72,"appr":9},{"n":53,"admit":94.9,"gpa":3.942,"dpe":0.086,"apps":3374,"adm":3205,"upp":57,"appr":9},{"n":39,"admit":96.1,"gpa":3.977,"dpe":0.089,"apps":3573,"adm":3426,"upp":40,"appr":9}],[{"n":48,"admit":90.6,"gpa":3.766,"dpe":0.114,"apps":2720,"adm":2462,"upp":89,"appr":13},{"n":45,"admit":92.1,"gpa":3.83,"dpe":0.114,"apps":2936,"adm":2704,"upp":80,"appr":12},{"n":42,"admit":94.2,"gpa":3.933,"dpe":0.117,"apps":3885,"adm":3659,"upp":55,"appr":12},{"n":41,"admit":96.1,"gpa":3.981,"dpe":0.119,"apps":4490,"adm":4321,"upp":33,"appr":12}],[{"n":57,"admit":91.6,"gpa":3.773,"dpe":0.164,"apps":3776,"adm":3464,"upp":89,"appr":18},{"n":52,"admit":92.0,"gpa":3.858,"dpe":0.16,"apps":3990,"adm":3702,"upp":76,"appr":17},{"n":27,"admit":94.8,"gpa":3.921,"dpe":0.166,"apps":2816,"adm":2674,"upp":61,"appr":17},{"n":40,"admit":95.8,"gpa":3.993,"dpe":0.169,"apps":6261,"adm":6028,"upp":33,"appr":18}],[{"n":53,"admit":90.8,"gpa":3.757,"dpe":0.304,"apps":5526,"adm":5062,"upp":88,"appr":33},{"n":41,"admit":93.6,"gpa":3.853,"dpe":0.287,"apps":4156,"adm":3859,"upp":84,"appr":31},{"n":35,"admit":93.6,"gpa":3.849,"dpe":0.249,"apps":3818,"adm":3582,"upp":76,"appr":27},{"n":48,"admit":95.6,"gpa":3.961,"dpe":0.304,"apps":13557,"adm":13063,"upp":38,"appr":32}]],"within":[0.333,0.46,0.452,0.38,0.359],"r_app":0.396,"r_ach_appr":-0.028,"over100":0,"n":882}}}};
 
 const CAMPUSES = ["Berkeley","Los Angeles","San Diego","Santa Barbara","Irvine","Davis","Santa Cruz","Riverside","Merced"];
 const SERIES = ["--s1","--s2","--s3","--s4"];
@@ -227,7 +271,25 @@ const GROUP_NAME = [
 ];
 const GROUP_SHORT = ["lowest-scoring quarter","second quarter","third quarter","highest-scoring quarter"];
 
+/* The two denominators the reader can switch between. Everything the page says
+   about the horizontal axis is written once, here, and read from these. */
+const DEN = {
+  cohort: {
+    pool: "graduating seniors",
+    poss: "their graduating seniors",
+    axis: c => "share of the school's graduating seniors who applied to UC " + c,
+    gloss: "Every student who graduated that year, whether or not they completed the A–G course sequence UC requires."
+  },
+  ag: {
+    pool: "A–G completers",
+    poss: "their A–G completers",
+    axis: c => "share of the school's A–G completers who applied to UC " + c,
+    gloss: "Only the graduates who finished the A–G course sequence UC requires — a subset of the class, a little over half of it at the typical school."
+  }
+};
+
 let campus = "San Diego";
+let den = "cohort";
 let sel = null;          // {b, g}  — g === null means a whole column is selected
 let hov = null;          // same shape, from the pointer
 let lockedSeries = null; // g, set by clicking a legend entry
@@ -242,6 +304,8 @@ const el = (tag, attrs={}, text) => {
   if (text !== undefined) e.textContent = text;
   return e;
 };
+const C  = () => DATA[campus];            // campus-level facts
+const DN = () => DATA[campus].den[den];   // the bands/cells for the chosen denominator
 const active = () => hov || sel;
 const same = (a,b) => a && b && a.b===b.b && a.g===b.g;
 
@@ -259,7 +323,7 @@ function niceTicks(lo, hi, n=6){
 
 /* ---------- one panel ---------- */
 function drawChart(svgId, key, fmt, decimals){
-  const svg = $(svgId), D = DATA[campus];
+  const svg = $(svgId), D = DN();
   while (svg.firstChild) svg.removeChild(svg.firstChild);
 
   const vals=[];
@@ -268,7 +332,6 @@ function drawChart(svgId, key, fmt, decimals){
   const lo=lo0-span*0.16, hi=hi0+span*0.16;
   const y = v => M.t + PH - ((v-lo)/(hi-lo))*PH;
 
-  // column bands sit behind everything
   const bands=[];
   for(let b=0;b<NB;b++){
     const r = el("rect",{class:"colband",x:X(b)-STEP*0.44,y:M.t-8,width:STEP*0.88,height:PH+16,rx:6});
@@ -298,12 +361,11 @@ function drawChart(svgId, key, fmt, decimals){
     svg.appendChild(grp);
   }
 
-  // column labels: hoverable and clickable, they select the whole column
   const labels=[];
   for(let b=0;b<NB;b++){
     const bd=D.bands[b];
     const g=el("g",{class:"collab",tabindex:"0",role:"button",
-      "aria-label":"Select all schools where "+bd.lo+" to "+bd.hi+" percent of eligible seniors apply"});
+      "aria-label":"Select all schools where "+bd.lo+" to "+bd.hi+" percent of "+DEN[den].pool+" applied"});
     g.appendChild(el("rect",{x:X(b)-STEP*0.44,y:M.t+PH+8,width:STEP*0.88,height:22,rx:5,fill:"transparent"}));
     g.appendChild(el("text",{class:"axb",x:X(b),y:M.t+PH+22,"text-anchor":"middle"}, bd.lo+"–"+bd.hi+"%"));
     const on=()=>{ hov={b,g:null}; sync(); paintReadout(); hideTip(); };
@@ -318,7 +380,6 @@ function drawChart(svgId, key, fmt, decimals){
   svg.appendChild(el("text",{class:"ax",x:M.l,y:M.t+PH+45},"◄ few apply"));
   svg.appendChild(el("text",{class:"ax",x:M.l+PW,y:M.t+PH+45,"text-anchor":"end"},"most apply ►"));
 
-  // point list + keyboard stand-ins (pointer-events off, so they never block)
   const pts=[];
   for(let b=0;b<NB;b++) for(let g=0;g<NG;g++){
     const c=D.cells[b][g]; if(c) pts.push({b,g,px:X(b),py:y(c[key])});
@@ -326,8 +387,8 @@ function drawChart(svgId, key, fmt, decimals){
   pts.forEach(pt=>{
     const k=el("circle",{class:"hit",cx:pt.px,cy:pt.py,r:12,tabindex:"0",role:"button",
       "data-b":pt.b,"data-g":pt.g,
-      "aria-label":GROUP_NAME[pt.g]+", "+DATA[campus].bands[pt.b].lo+" to "
-        +DATA[campus].bands[pt.b].hi+" percent of eligible seniors applying"});
+      "aria-label":GROUP_NAME[pt.g]+", "+D.bands[pt.b].lo+" to "+D.bands[pt.b].hi
+        +" percent of "+DEN[den].pool+" applying"});
     k.addEventListener("focus",()=>{ hov={b:pt.b,g:pt.g}; sync(); paintReadout(); });
     k.addEventListener("blur",()=>{ hov=null; sync(); paintReadout(); });
     k.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault();
@@ -384,7 +445,7 @@ function sync(){
       g.classList.toggle("sel", !!sel && sel.b===b && sel.g===null);
     });
     if (a && a.g!==null){
-      const c = DATA[campus].cells[a.b][a.g];
+      const c = DN().cells[a.b][a.g];
       if (c){ ch.hiDot.setAttribute("cx", X(a.b)); ch.hiDot.setAttribute("cy", ch.y(c[ch.key]));
               ch.hiDot.style.display=""; return; }
     }
@@ -408,16 +469,40 @@ function paintReadout(){
   else describePoint(a.b,a.g);
 }
 
+/* ---------- the note that explains rates above 100% ---------- */
+function paintDenNote(){
+  const box=$("denote");
+  if(den!=="ag"){ box.hidden=true; while(box.firstChild) box.removeChild(box.firstChild); return; }
+  const D=DN(), top=D.bands[NB-1].hi;
+  while(box.firstChild) box.removeChild(box.firstChild);
+  const b=document.createElement("b"); b.textContent="Rates above 100% are not errors. ";
+  box.appendChild(b);
+  box.appendChild(document.createTextNode(
+    "This denominator counts only the graduates who finished the A–G course sequence UC requires — "
+    + "roughly half the class. The numerator is not confined to that group: students who did not "
+    + "complete A–G can still apply, and applications arrive from more than one graduating class. A few "
+    + "of the state's A–G counts are also under-reported. So where nearly everyone applies, applications "
+    + "can outnumber A–G completers"));
+  box.appendChild(document.createTextNode(
+    D.over100===0
+      ? " — that does not quite happen at UC " + campus + ", but it is why this denominator gives "
+        + "larger rates than the graduating-class one."
+      : " — at UC " + campus + ", at " + D.over100 + " of " + num(D.n) + " schools, which is why the "
+        + "top band reads to " + top + "%."));
+  box.hidden=false;
+}
+
 /* ---------- tooltip ---------- */
 function tip(ev,b,g,key,fmt){
-  const t=$("tip"), D=DATA[campus], c=D.cells[b][g];
+  const t=$("tip"), D=DN(), c=D.cells[b][g];
   while(t.firstChild) t.removeChild(t.firstChild);
   const v=document.createElement("div"); v.className="v"; v.textContent=fmt(c[key]); t.appendChild(v);
   const k=document.createElement("div"); k.className="k";
   const i=document.createElement("i"); i.style.background=cssv(SERIES[g]);
   k.appendChild(i); k.appendChild(document.createTextNode(GROUP_SHORT[g])); t.appendChild(k);
   const k2=document.createElement("div"); k2.className="k";
-  k2.textContent = num(c.n)+" schools, where "+D.bands[b].lo+"–"+D.bands[b].hi+"% of eligible seniors apply";
+  k2.textContent = num(c.n)+" schools, where "+D.bands[b].lo+"–"+D.bands[b].hi+"% of "
+    +DEN[den].pool+" applied";
   t.appendChild(k2);
   t.classList.add("on");
   const pad=14, w=t.offsetWidth, h=t.offsetHeight;
@@ -448,33 +533,35 @@ function head(kicker, text, swatchColor){
 }
 
 function renderDefault(){
-  const D=DATA[campus];
+  const D=DN(), G=C(), P=DEN[den];
   const r=head("Nothing selected","Hover or click any point — or any column label — to see what it stands for");
   const dl=document.createElement("dl");
   row(dl,"Each point",["one group of California high schools, not one school and not one year. ",
     "The three admission cycles 2023, 2024 and 2025 are pooled together."]);
-  row(dl,"Left to right",["how many of a school's UC-eligible seniors applied to UC "+campus+
+  row(dl,"Left to right",["how many of a school's ", P.pool, " applied to UC "+campus+
     ". Far left: schools where only ", strong(D.bands[0].lo+"–"+D.bands[0].hi+"%"),
     " applied. Far right: schools where ", strong(D.bands[NB-1].lo+"–"+D.bands[NB-1].hi+"%"),
     " did. This is a measure of student behavior, not a date."]);
+  row(dl,"The denominator",[P.gloss,
+    " Switch it above and the schools are re-sorted; the columns change, the schools do not."]);
   row(dl,"Line color",["the school's own test performance. The palest line is the quarter of schools",
     " with the lowest share of 11th graders meeting the state standard (",
-    strong(D.groups[0].lo+"–"+D.groups[0].hi+"%"), "); the darkest is the highest quarter (",
-    strong(D.groups[NG-1].lo+"–"+D.groups[NG-1].hi+"%"), ")."]);
+    strong(G.groups[0].lo+"–"+G.groups[0].hi+"%"), "); the darkest is the highest quarter (",
+    strong(G.groups[NG-1].lo+"–"+G.groups[NG-1].hi+"%"), ")."]);
   row(dl,"Dot size",["how many schools are in that group. Bigger dots are more schools."]);
   row(dl,"Whole columns",["click a percentage label under either chart to take in one column at once —",
     " all the schools with about the same application rate, compared across the four performance groups."]);
   row(dl,"If lines overlap",["click a legend entry below the charts to show that group on its own."]);
-  row(dl,"This campus",[num(D.n)+" schools sent at least 30 applications to UC "+campus+
+  row(dl,"This campus",[num(G.n)+" schools sent at least 30 applications to UC "+campus+
     " across the three years."]);
   r.appendChild(dl);
 }
 
 function describePoint(b,g){
-  const D=DATA[campus], c=D.cells[b][g], bd=D.bands[b], gr=D.groups[g];
+  const D=DN(), G=C(), P=DEN[den], c=D.cells[b][g], bd=D.bands[b], gr=G.groups[g];
   if(!c) return;
   const r=head(same(sel,{b,g})?"Selected point":"Point under the pointer",
-    GROUP_NAME[g]+", where "+bd.lo+"–"+bd.hi+"% of eligible seniors apply to UC "+campus,
+    GROUP_NAME[g]+", where "+bd.lo+"–"+bd.hi+"% of "+P.pool+" applied to UC "+campus,
     cssv(SERIES[g]));
   const dl=document.createElement("dl");
   row(dl,"Which schools",[strong(num(c.n)+(c.n===1?" school":" schools")),
@@ -483,9 +570,7 @@ function describePoint(b,g){
     GROUP_SHORT[g], " of the schools shown here. On average ", strong(c.upp+"%"),
     " of their students are counted as low-income, English learners, or in foster care."]);
   row(dl,"How many applied",["Between ", strong(bd.lo+"%"), " and ", strong(bd.hi+"%"),
-    " of their A–G-eligible seniors applied to UC "+campus+" (average ", strong(c.appr+"%"),
-    "). A–G-eligible means the student finished the course sequence UC requires, so they were",
-    " in a position to apply."]);
+    " of ", P.poss, " applied to UC "+campus+" (average ", strong(c.appr+"%"), "). ", P.gloss]);
   row(dl,"What happened",["Together these schools sent ", strong(num(c.apps)+" applications"),
     " to UC "+campus+" over 2023–2025 and received ", strong(num(c.adm)+" offers"),
     ". Averaged across the schools, ", strong(c.admit+"%"), " of applicants were admitted."]);
@@ -504,7 +589,7 @@ function describePoint(b,g){
 }
 
 function describeColumn(b){
-  const D=DATA[campus], bd=D.bands[b];
+  const D=DN(), G=C(), P=DEN[den], bd=D.bands[b];
   const live=[]; for(let g=0;g<NG;g++){ const c=D.cells[b][g]; if(c) live.push({g,c}); }
   if(!live.length) return;
   const tot = live.reduce((a,x)=>({n:a.n+x.c.n, apps:a.apps+x.c.apps, adm:a.adm+x.c.adm}),
@@ -516,12 +601,12 @@ function describeColumn(b){
   const loG=Math.min(...gpas), hiG=Math.max(...gpas);
 
   const r=head(sel && sel.b===b && sel.g===null ? "Selected column" : "Column under the pointer",
-    "All schools where "+bd.lo+"–"+bd.hi+"% of eligible seniors apply to UC "+campus);
+    "All schools where "+bd.lo+"–"+bd.hi+"% of "+P.pool+" applied to UC "+campus);
 
   const dl=document.createElement("dl");
   row(dl,"Which schools",[strong(num(tot.n)+" schools"),
     " — every performance group in this column combined. Between ", strong(bd.lo+"%"),
-    " and ", strong(bd.hi+"%"), " of their A–G-eligible seniors applied to UC "+campus,
+    " and ", strong(bd.hi+"%"), " of ", P.poss, " applied to UC "+campus,
     ". They differ from one another mainly in how their own students score on the state tests,",
     " which is what the four rows below separate."]);
   row(dl,"What happened",["Together they sent ", strong(num(tot.apps)+" applications"),
@@ -532,7 +617,6 @@ function describeColumn(b){
     strong(wAvg("admit").toFixed(1)+"%"), "."]);
   r.appendChild(dl);
 
-  // the cross-comparison
   const cap=document.createElement("p"); cap.className="tblcap";
   cap.textContent="The four performance groups at this application rate";
   r.appendChild(cap);
@@ -549,7 +633,7 @@ function describeColumn(b){
     const th=document.createElement("th"); th.scope="row"; th.className="lft";
     const sw=document.createElement("span"); sw.className="rowsw";
     sw.style.background=cssv(SERIES[g]); th.appendChild(sw);
-    th.appendChild(document.createTextNode(GROUP_NAME[g]+" ("+D.groups[g].lo+"–"+D.groups[g].hi+"% met standard)"));
+    th.appendChild(document.createTextNode(GROUP_NAME[g]+" ("+G.groups[g].lo+"–"+G.groups[g].hi+"% met standard)"));
     tr.appendChild(th);
     [num(c.n), c.admit.toFixed(1)+"%", c.gpa.toFixed(2),
      (c.dpe!==null&&c.dpe!==undefined)?Math.round(c.dpe*1000):"—"]
@@ -577,13 +661,13 @@ function buildLegend(){
   const ul=$("legend"); while(ul.firstChild) ul.removeChild(ul.firstChild);
   const hd=document.createElement("li"); hd.className="hd";
   hd.textContent="School test performance"; ul.appendChild(hd);
-  const D=DATA[campus];
+  const G=C();
   GROUP_NAME.forEach((nm,g)=>{
     const li=document.createElement("li"); li.setAttribute("data-series",g);
     li.tabIndex=0; li.setAttribute("role","button");
     const sw=document.createElement("span"); sw.className="sw"; sw.style.background=cssv(SERIES[g]);
     li.appendChild(sw);
-    li.appendChild(document.createTextNode(nm+" ("+D.groups[g].lo+"–"+D.groups[g].hi+"% met standard)"));
+    li.appendChild(document.createTextNode(nm+" ("+G.groups[g].lo+"–"+G.groups[g].hi+"% met standard)"));
     const toggle=()=>{ lockedSeries = (lockedSeries===g)?null:g;
       $("lockhint").hidden = lockedSeries===null; sync(); };
     li.addEventListener("click",toggle);
@@ -594,12 +678,13 @@ function buildLegend(){
 
 function buildTable(){
   const host=$("tableHost"); while(host.firstChild) host.removeChild(host.firstChild);
-  const D=DATA[campus], t=document.createElement("table");
+  const D=DN(), G=C(), t=document.createElement("table");
   const cap=document.createElement("caption");
-  cap.textContent="UC "+campus+", 2023–2025. Admit rate % / applicant-pool GPA / number of schools.";
+  cap.textContent="UC "+campus+", 2023–2025, by share of "+DEN[den].pool
+    +" applying. Admit rate % / applicant-pool GPA / number of schools.";
   t.appendChild(cap);
   const thead=document.createElement("thead"), hr=document.createElement("tr");
-  ["Share of eligible seniors applying", ...GROUP_NAME].forEach((x,i)=>{
+  ["Share of "+DEN[den].pool+" applying", ...GROUP_NAME].forEach((x,i)=>{
     const th=document.createElement("th"); th.scope="col"; th.textContent=x;
     if(i===0) th.className="lft"; hr.appendChild(th); });
   thead.appendChild(hr); t.appendChild(thead);
@@ -618,29 +703,34 @@ function buildTable(){
   t.appendChild(tb); host.appendChild(t);
 }
 
+function setAxisLabels(){
+  document.querySelectorAll(".xlab").forEach(e=>{ e.textContent = DEN[den].axis(campus); });
+}
+
 function render(){
   charts = [];
   drawChart("svgA","admit", v=>v.toFixed(1)+"%", 0);
   drawChart("svgB","gpa",   v=>v.toFixed(2),     2);
-  buildLegend(); buildTable(); sync();
+  buildLegend(); buildTable(); setAxisLabels(); paintDenNote(); sync();
 }
 
-function buildChips(){
-  const host=$("campusChips");
+function resetSelection(){
+  sel=null; hov=null; lockedSeries=null;
+  $("pinbar").hidden=true; $("lockhint").hidden=true;
+}
+
+function buildCampusPicker(){
+  const s=$("campusPick");
   CAMPUSES.forEach(c=>{
-    const b=document.createElement("button");
-    b.className="chip"; b.type="button"; b.textContent=c;
-    b.setAttribute("aria-pressed", String(c===campus));
-    b.addEventListener("click",()=>{
-      campus=c; sel=null; hov=null; lockedSeries=null;
-      $("pinbar").hidden=true; $("lockhint").hidden=true;
-      host.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x.textContent===c)));
-      render(); paintReadout(); hideTip();
-    });
-    host.appendChild(b);
+    const o=document.createElement("option"); o.value=c; o.textContent="UC "+c; s.appendChild(o);
   });
+  s.value=campus;
+  s.addEventListener("change",()=>{ campus=s.value; resetSelection(); render(); paintReadout(); hideTip(); });
 }
 
+$("denPick").addEventListener("change",e=>{
+  den = e.target.value; resetSelection(); render(); paintReadout(); hideTip();
+});
 $("clearPin").addEventListener("click",()=>{ sel=null; hov=null; afterSelect(); });
 $("themeBtn").addEventListener("click",()=>{
   const dark = document.documentElement.getAttribute("data-theme")==="dark";
@@ -651,7 +741,7 @@ $("themeBtn").addEventListener("click",()=>{
 document.addEventListener("keydown",e=>{ if(e.key==="Escape" && sel){ sel=null; afterSelect(); }});
 window.addEventListener("resize",hideTip);
 
-buildChips(); render(); paintReadout();
+buildCampusPicker(); $("denPick").value=den; render(); paintReadout();
 </script>
 </body>
 </html>
