@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admit rates by how many students apply — University of California, 2023–2025</title>
+<meta name="description" content="An interactive look at UC admit rates for California high schools, grouped by what share of each school's UC-eligible seniors apply and by the school's own test performance.">
+<style>
+:root{
+  color-scheme: light dark;
+  --surface-1:#fcfcfb; --plane:#f9f9f7;
+  --text-primary:#0b0b0b; --text-secondary:#52514e; --text-muted:#898781;
+  --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,.10);
+  --s1:#86b6ef; --s2:#3987e5; --s3:#1c5cab; --s4:#0d366b;
+  --chip:#ffffff; --chip-on:#0b0b0b; --chip-on-ink:#ffffff;
+  --dim:.26;
+  --font: system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:where(:not([data-theme="light"])){
+    --surface-1:#1a1a19; --plane:#0d0d0d;
+    --text-primary:#ffffff; --text-secondary:#c3c2b7; --text-muted:#898781;
+    --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
+    --s1:#b7d3f6; --s2:#6da7ec; --s3:#2a78d6; --s4:#184f95;
+    --chip:#232322; --chip-on:#ffffff; --chip-on-ink:#0b0b0b; --dim:.42;
+  }
+}
+:root[data-theme="dark"]{
+  --surface-1:#1a1a19; --plane:#0d0d0d;
+  --text-primary:#ffffff; --text-secondary:#c3c2b7; --text-muted:#898781;
+  --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
+  --s1:#b7d3f6; --s2:#6da7ec; --s3:#2a78d6; --s4:#184f95;
+  --chip:#232322; --chip-on:#ffffff; --chip-on-ink:#0b0b0b; --dim:.42;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--plane);color:var(--text-primary);font-family:var(--font);
+     font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:34px 22px 64px}
+h1{font-size:clamp(1.5rem,3.2vw,2.1rem);line-height:1.2;margin:0 0 .5rem;letter-spacing:-.015em}
+.standfirst{margin:0 0 1.4rem;color:var(--text-secondary);font-size:1.02rem;max-width:74ch}
+.howto{background:var(--surface-1);border:1px solid var(--border);border-radius:10px;
+       padding:14px 16px;margin:0 0 1.5rem;font-size:.92rem;color:var(--text-secondary);max-width:88ch}
+.howto b{color:var(--text-primary)}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 6px}
+.controls .lab{font-size:.78rem;text-transform:uppercase;letter-spacing:.07em;
+               color:var(--text-muted);margin-right:6px;font-weight:600}
+button.chip{font:inherit;font-size:.88rem;padding:5px 12px;border-radius:999px;cursor:pointer;
+            background:var(--chip);color:var(--text-secondary);border:1px solid var(--border)}
+button.chip:hover{border-color:var(--axis);color:var(--text-primary)}
+button.chip[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-ink);border-color:var(--chip-on)}
+button.chip:focus-visible{outline:2px solid var(--s3);outline-offset:2px}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:18px 0 0}
+@media(max-width:840px){.charts{grid-template-columns:1fr}}
+figure{margin:0;background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:16px 14px 10px}
+figcaption{font-weight:700;font-size:1rem;margin:0 0 2px;padding:0 4px}
+.sub{font-size:.84rem;color:var(--text-muted);margin:0 0 6px;padding:0 4px}
+svg{display:block;width:100%;height:auto;overflow:visible}
+.gl{stroke:var(--grid);stroke-width:1}
+.ax{fill:var(--text-muted);font-size:11px}
+.axb{fill:var(--text-secondary);font-size:11.5px}
+.serieslab{fill:var(--text-secondary);font-size:11.5px;font-weight:600}
+.ln{fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.dot{stroke:var(--surface-1);stroke-width:2}
+.hit{fill:transparent;pointer-events:none}
+.hit:focus-visible{outline:none}
+.surface{fill:transparent;cursor:crosshair}
+.colband{fill:var(--text-primary);opacity:0;transition:opacity .1s;pointer-events:none}
+.colband.on{opacity:.045}
+.colband.sel{opacity:.085}
+.collab{cursor:pointer}
+.collab text{transition:fill .1s}
+.collab:hover text,.collab.on text{fill:var(--text-primary)}
+.collab.sel text{fill:var(--text-primary);font-weight:700}
+.collab.sel rect{fill:var(--surface-1);stroke:var(--axis);stroke-width:1}
+.collab:focus-visible rect{stroke:var(--s3);stroke-width:1.5}
+.dothi{fill:none;stroke:var(--text-primary);stroke-width:2}
+.fx{opacity:1;transition:opacity .12s ease}
+.dim{opacity:var(--dim)}
+.ringsel{fill:none;stroke:var(--text-primary);stroke-width:2}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;margin:16px 0 0;padding:0;list-style:none}
+.legend li{display:flex;align-items:center;gap:8px;font-size:.86rem;color:var(--text-secondary);
+           cursor:pointer;padding:3px 8px 3px 4px;border-radius:7px;border:1px solid transparent}
+.legend li:hover,.legend li.on{border-color:var(--border);background:var(--surface-1);color:var(--text-primary)}
+.legend li.locked{border-color:var(--axis);background:var(--surface-1);color:var(--text-primary);font-weight:600}
+.legend li:focus-visible{outline:2px solid var(--s3);outline-offset:2px}
+.lockhint[hidden]{display:none}
+.lockhint{margin:10px 0 0;font-size:.84rem;color:var(--text-muted)}
+.legend .sw{width:22px;height:3px;border-radius:2px;flex:none}
+.legend .hd{flex:0 0 100%;margin-bottom:2px;font-size:.78rem;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);
+            font-weight:600;cursor:default;border:0;background:none;padding-left:0}
+.legend .hd:hover{background:none;border-color:transparent;color:var(--text-muted)}
+@media(max-width:700px){
+  .ax{font-size:14px} .axb{font-size:15px} .serieslab{font-size:15px}
+  .dot{stroke-width:2.5} .ln{stroke-width:2.6}
+}
+.readout{margin:18px 0 0;background:var(--surface-1);border:1px solid var(--border);border-radius:12px;
+         padding:18px 20px;min-height:210px}
+.readout h2{font-size:1.02rem;margin:0 0 2px;display:flex;align-items:center;gap:9px;line-height:1.35}
+.readout h2 .sw{width:12px;height:12px;border-radius:50%;flex:none}
+.readout .kicker{font-size:.76rem;text-transform:uppercase;letter-spacing:.08em;
+                 color:var(--text-muted);font-weight:600;margin:0 0 8px}
+.readout dl{margin:14px 0 0;display:grid;grid-template-columns:auto 1fr;gap:9px 18px;font-size:.93rem}
+.readout dt{color:var(--text-muted);font-weight:600;font-size:.8rem;text-transform:uppercase;
+            letter-spacing:.05em;padding-top:3px;white-space:nowrap}
+.readout dd{margin:0;color:var(--text-secondary)}
+.readout dd b{color:var(--text-primary);font-weight:650}
+.tblcap{margin:18px 0 0;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;
+        color:var(--text-muted);font-weight:600}
+table.cmp{margin:8px 0 4px}
+table.cmp caption{display:none}
+table.cmp th.lft,table.cmp td.lft{text-align:left}
+table.cmp tbody th{font-weight:500;color:var(--text-secondary);display:flex;align-items:center;gap:9px}
+.rowsw{width:14px;height:3px;border-radius:2px;flex:none;display:inline-block}
+table caption{caption-side:top;text-align:left;color:var(--text-muted);font-size:.84rem;padding:6px 0}
+th.lft,td.lft{text-align:left}
+@media(max-width:620px){.readout dl{grid-template-columns:1fr;gap:2px 0}
+  .readout dt{padding-top:10px}}
+.note{margin:14px 0 0;padding-top:12px;border-top:1px solid var(--border);
+      font-size:.86rem;color:var(--text-muted)}
+.pinbar[hidden]{display:none}
+.pinbar{display:flex;gap:10px;align-items:center;margin:12px 0 0;font-size:.82rem;color:var(--text-muted)}
+.tip{position:fixed;pointer-events:none;z-index:20;background:var(--plane);color:var(--text-primary);
+     border:1px solid var(--axis);border-radius:9px;padding:9px 11px;font-size:.84rem;
+     box-shadow:0 10px 30px rgba(0,0,0,.22);opacity:0;transition:opacity .08s;max-width:290px}
+.tip.on{opacity:1}
+.tip .v{font-size:1.12rem;font-weight:700;line-height:1.2}
+.tip .k{color:var(--text-secondary);font-size:.8rem;display:flex;align-items:center;gap:7px;margin-top:3px}
+.tip .k i{width:14px;height:3px;border-radius:2px;display:inline-block;flex:none}
+details{margin:22px 0 0;background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:12px 18px}
+summary{cursor:pointer;font-weight:600;font-size:.92rem}
+table{border-collapse:collapse;width:100%;margin:14px 0 6px;font-size:.85rem;
+      font-variant-numeric:tabular-nums}
+th,td{text-align:right;padding:6px 9px;border-bottom:1px solid var(--grid)}
+th:first-child,td:first-child{text-align:left}
+thead th{color:var(--text-muted);font-size:.76rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+footer{margin:30px 0 0;padding-top:16px;border-top:1px solid var(--border);
+       font-size:.82rem;color:var(--text-muted);max-width:88ch}
+footer a{color:inherit}
+.themebtn{margin-left:auto}
+</style>
+</head>
+<body>
+<main class="wrap viz-root">
+
+<h1>Admit rates by how many students apply</h1>
+<p class="standfirst">Every California public high school that sent at least 30 applications to a
+University of California campus in 2023&ndash;2025. Schools are sorted into five groups by
+<em>what share of their UC-eligible seniors applied</em>, and into four groups by
+<em>how their own students scored on the state tests</em>. Pick a campus, then hover or click
+any point to see exactly which schools it stands for.</p>
+
+<div class="howto">
+<b>Read the horizontal axis carefully.</b> It is <b>not time</b>. Left to right does not mean
+2023 to 2025 &mdash; all three years are pooled together in every point. Moving right means a
+<em>larger share of the school&rsquo;s eligible seniors chose to apply</em> to this campus. The
+leftmost group is schools where hardly anyone applies; the rightmost is schools where most of the
+eligible class does. Each colored line is a different kind of school, followed across those five
+groups.
+</div>
+
+<div class="controls" role="group" aria-label="Choose a campus">
+  <span class="lab">Campus</span>
+  <span id="campusChips"></span>
+  <button class="chip themebtn" id="themeBtn" type="button">Dark</button>
+</div>
+
+<div class="charts">
+  <figure>
+    <figcaption>A. Admit rate</figcaption>
+    <p class="sub">Of the students who applied, the share who were offered admission.</p>
+    <svg id="svgA" viewBox="0 0 520 330" role="img" aria-label="Admit rate by application-rate group"></svg>
+  </figure>
+  <figure>
+    <figcaption>B. Applicant-pool GPA</figcaption>
+    <p class="sub">The average grade point average of the students who applied, as UC recalculates it.</p>
+    <svg id="svgB" viewBox="0 0 520 330" role="img" aria-label="Applicant pool GPA by application-rate group"></svg>
+  </figure>
+</div>
+
+<ul class="legend" id="legend"></ul>
+
+<p class="lockhint" id="lockhint" hidden>Showing one group only. Click the same legend entry again to
+show all four. Use this when two lines cross or sit on top of each other.</p>
+
+<section class="readout" id="readout" aria-live="polite"></section>
+<div class="pinbar" id="pinbar" hidden>
+  <button class="chip" type="button" id="clearPin">Clear selection</button>
+  <span id="pinword">A point is selected. Hovering elsewhere will not change the panel.</span>
+</div>
+
+<details>
+  <summary>Show the numbers as a table</summary>
+  <div id="tableHost"></div>
+</details>
+
+<footer>
+<p><b>How the groups are built.</b> A school&rsquo;s <em>application rate</em> is the number of
+applications it sent to the campus divided by the number of its seniors who completed the
+&ldquo;A&ndash;G&rdquo; course sequence UC requires &mdash; roughly, the share of college-eligible
+students who applied. A school&rsquo;s <em>test performance</em> is the share of its 11th graders
+meeting the state standard on the CAASPP English and math tests, averaged. Both cuts are made
+separately within each campus, so the five columns and four lines always hold about the same
+number of schools. Cells containing fewer than eight schools are not drawn.</p>
+<p><b>Sources.</b> University of California Information Center, source-school admissions files;
+California Department of Education CAASPP results, A&ndash;G completion files, and
+CALPADS unduplicated pupil counts. Figures pool the 2023, 2024 and 2025 admission cycles.
+Counts of applications and offers are sums; rates are averages across the schools in a group,
+so a large school and a small one count equally.</p>
+<p><b>What this page does not do.</b> It shows what the published records contain. It does not
+model why any school&rsquo;s rate is what it is, and a difference between two groups here is not
+by itself evidence about how any individual application was read.</p>
+</footer>
+
+</main>
+
+<div class="tip" id="tip" aria-hidden="true"></div>
+
+<script>
+const DATA = {"Berkeley":{"n":994,"bands":[{"lo":6,"hi":16},{"lo":16,"hi":20},{"lo":20,"hi":26},{"lo":26,"hi":37},{"lo":37,"hi":120}],"groups":[{"lo":0,"hi":31},{"lo":31,"hi":42},{"lo":42,"hi":57},{"lo":57,"hi":98}],"cells":[[{"n":70,"admit":20.1,"gpa":3.691,"dpe":0.027,"apps":5038,"adm":696,"upp":88,"appr":13},{"n":77,"admit":19.6,"gpa":3.781,"dpe":0.026,"apps":5921,"adm":784,"upp":76,"appr":13},{"n":39,"admit":17.2,"gpa":3.843,"dpe":0.021,"apps":3539,"adm":429,"upp":61,"appr":12},{"n":13,"admit":14.4,"gpa":3.874,"dpe":0.018,"apps":1583,"adm":195,"upp":42,"appr":12}],[{"n":66,"admit":18.3,"gpa":3.707,"dpe":0.034,"apps":5609,"adm":815,"upp":87,"appr":18},{"n":57,"admit":20.5,"gpa":3.77,"dpe":0.038,"apps":5158,"adm":831,"upp":80,"appr":18},{"n":54,"admit":18.3,"gpa":3.822,"dpe":0.034,"apps":7158,"adm":1093,"upp":66,"appr":18},{"n":22,"admit":17.5,"gpa":3.891,"dpe":0.031,"apps":2945,"adm":368,"upp":47,"appr":18}],[{"n":57,"admit":18.2,"gpa":3.719,"dpe":0.043,"apps":5500,"adm":814,"upp":86,"appr":23},{"n":58,"admit":18.9,"gpa":3.782,"dpe":0.046,"apps":5647,"adm":856,"upp":75,"appr":23},{"n":53,"admit":16.6,"gpa":3.863,"dpe":0.039,"apps":8261,"adm":1148,"upp":56,"appr":23},{"n":30,"admit":16.2,"gpa":3.89,"dpe":0.038,"apps":6662,"adm":893,"upp":43,"appr":23}],[{"n":38,"admit":19.4,"gpa":3.736,"dpe":0.059,"apps":3616,"adm":557,"upp":83,"appr":31},{"n":39,"admit":17.4,"gpa":3.802,"dpe":0.056,"apps":6203,"adm":1048,"upp":72,"appr":32},{"n":62,"admit":15.6,"gpa":3.882,"dpe":0.049,"apps":12904,"adm":1861,"upp":51,"appr":31},{"n":60,"admit":13.8,"gpa":3.893,"dpe":0.044,"apps":14702,"adm":1790,"upp":38,"appr":32}],[{"n":18,"admit":20.1,"gpa":3.739,"dpe":0.103,"apps":2391,"adm":436,"upp":86,"appr":49},{"n":17,"admit":18.7,"gpa":3.836,"dpe":0.099,"apps":2556,"adm":358,"upp":72,"appr":54},{"n":40,"admit":16.6,"gpa":3.863,"dpe":0.079,"apps":10688,"adm":1593,"upp":51,"appr":47},{"n":124,"admit":15.4,"gpa":3.929,"dpe":0.083,"apps":59985,"adm":8210,"upp":30,"appr":54}]],"within":[-0.248,-0.06,-0.062,-0.301,-0.228],"r_raw":-0.226,"r_app":-0.19,"r_upp":0.006,"r_ach_appr":0.512,"r_ach_gpa":0.593,"r_ach_dpe":0.252},"Los Angeles":{"n":959,"bands":[{"lo":9,"hi":22},{"lo":22,"hi":29},{"lo":29,"hi":36},{"lo":36,"hi":46},{"lo":46,"hi":117}],"groups":[{"lo":5,"hi":32},{"lo":32,"hi":43},{"lo":43,"hi":57},{"lo":57,"hi":98}],"cells":[[{"n":56,"admit":13.2,"gpa":3.811,"dpe":0.024,"apps":5192,"adm":419,"upp":83,"appr":18},{"n":74,"admit":12.8,"gpa":3.874,"dpe":0.023,"apps":7772,"adm":629,"upp":69,"appr":17},{"n":47,"admit":12.0,"gpa":3.931,"dpe":0.021,"apps":5766,"adm":485,"upp":55,"appr":17},{"n":15,"admit":12.7,"gpa":3.939,"dpe":0.021,"apps":1907,"adm":198,"upp":40,"appr":17}],[{"n":62,"admit":10.9,"gpa":3.763,"dpe":0.029,"apps":8174,"adm":686,"upp":86,"appr":25},{"n":66,"admit":10.8,"gpa":3.841,"dpe":0.029,"apps":9260,"adm":785,"upp":73,"appr":26},{"n":44,"admit":10.8,"gpa":3.873,"dpe":0.028,"apps":7678,"adm":662,"upp":56,"appr":26},{"n":20,"admit":10.7,"gpa":3.958,"dpe":0.028,"apps":4555,"adm":409,"upp":37,"appr":26}],[{"n":58,"admit":11.1,"gpa":3.743,"dpe":0.037,"apps":8601,"adm":711,"upp":88,"appr":32},{"n":46,"admit":11.3,"gpa":3.786,"dpe":0.036,"apps":7439,"adm":623,"upp":82,"appr":32},{"n":56,"admit":11.2,"gpa":3.936,"dpe":0.037,"apps":13403,"adm":1256,"upp":51,"appr":32},{"n":31,"admit":9.6,"gpa":3.933,"dpe":0.031,"apps":9780,"adm":897,"upp":39,"appr":32}],[{"n":49,"admit":12.0,"gpa":3.673,"dpe":0.049,"apps":7664,"adm":714,"upp":90,"appr":39},{"n":36,"admit":12.2,"gpa":3.835,"dpe":0.05,"apps":7231,"adm":782,"upp":80,"appr":40},{"n":59,"admit":10.0,"gpa":3.881,"dpe":0.04,"apps":14116,"adm":1269,"upp":60,"appr":40},{"n":48,"admit":9.9,"gpa":3.922,"dpe":0.041,"apps":14793,"adm":1331,"upp":38,"appr":41}],[{"n":15,"admit":14.1,"gpa":3.735,"dpe":0.073,"apps":2576,"adm":266,"upp":87,"appr":52},{"n":18,"admit":12.9,"gpa":3.732,"dpe":0.098,"apps":3610,"adm":428,"upp":80,"appr":55},{"n":33,"admit":10.7,"gpa":3.86,"dpe":0.056,"apps":11164,"adm":1129,"upp":65,"appr":52},{"n":126,"admit":10.0,"gpa":3.947,"dpe":0.061,"apps":70211,"adm":6342,"upp":32,"appr":61}]],"within":[-0.106,-0.037,-0.061,-0.241,-0.283],"r_raw":-0.167,"r_app":-0.127,"r_upp":-0.116,"r_ach_appr":0.528,"r_ach_gpa":0.544,"r_ach_dpe":0.178},"San Diego":{"n":1047,"bands":[{"lo":6,"hi":19},{"lo":19,"hi":25},{"lo":25,"hi":32},{"lo":32,"hi":42},{"lo":42,"hi":115}],"groups":[{"lo":5,"hi":31},{"lo":31,"hi":42},{"lo":42,"hi":56},{"lo":56,"hi":98}],"cells":[[{"n":91,"admit":40.2,"gpa":3.685,"dpe":0.061,"apps":5700,"adm":2127,"upp":86,"appr":15},{"n":66,"admit":34.6,"gpa":3.729,"dpe":0.049,"apps":4454,"adm":1303,"upp":75,"appr":14},{"n":41,"admit":31.5,"gpa":3.775,"dpe":0.043,"apps":3525,"adm":898,"upp":60,"appr":14},{"n":12,"admit":25.1,"gpa":3.808,"dpe":0.039,"apps":1253,"adm":290,"upp":39,"appr":15}],[{"n":73,"admit":40.1,"gpa":3.646,"dpe":0.089,"apps":7690,"adm":3018,"upp":87,"appr":22},{"n":73,"admit":35.0,"gpa":3.708,"dpe":0.076,"apps":7819,"adm":2533,"upp":75,"appr":21},{"n":52,"admit":30.2,"gpa":3.756,"dpe":0.068,"apps":7396,"adm":2024,"upp":63,"appr":22},{"n":11,"admit":31.6,"gpa":3.879,"dpe":0.071,"apps":1645,"adm":470,"upp":44,"appr":22}],[{"n":56,"admit":39.3,"gpa":3.609,"dpe":0.111,"apps":7282,"adm":2834,"upp":87,"appr":28},{"n":66,"admit":35.0,"gpa":3.705,"dpe":0.097,"apps":9205,"adm":3147,"upp":76,"appr":28},{"n":63,"admit":28.9,"gpa":3.779,"dpe":0.082,"apps":10987,"adm":2931,"upp":59,"appr":28},{"n":24,"admit":25.6,"gpa":3.816,"dpe":0.077,"apps":6637,"adm":1619,"upp":47,"appr":29}],[{"n":28,"admit":39.3,"gpa":3.638,"dpe":0.138,"apps":4583,"adm":1687,"upp":85,"appr":36},{"n":44,"admit":33.5,"gpa":3.714,"dpe":0.121,"apps":7769,"adm":2681,"upp":77,"appr":36},{"n":67,"admit":26.6,"gpa":3.8,"dpe":0.097,"apps":16608,"adm":4047,"upp":53,"appr":36},{"n":70,"admit":24.3,"gpa":3.827,"dpe":0.089,"apps":20083,"adm":4556,"upp":39,"appr":37}],[{"n":14,"admit":37.7,"gpa":3.624,"dpe":0.213,"apps":2828,"adm":1125,"upp":90,"appr":55},{"n":14,"admit":35.2,"gpa":3.718,"dpe":0.171,"apps":2513,"adm":926,"upp":68,"appr":48},{"n":37,"admit":26.3,"gpa":3.808,"dpe":0.124,"apps":11246,"adm":2923,"upp":57,"appr":48},{"n":145,"admit":21.1,"gpa":3.868,"dpe":0.122,"apps":79686,"adm":15558,"upp":32,"appr":59}]],"within":[-0.435,-0.286,-0.401,-0.439,-0.52],"r_raw":-0.537,"r_app":-0.4,"r_upp":-0.067,"r_ach_appr":0.624,"r_ach_gpa":0.556,"r_ach_dpe":0.108},"Santa Barbara":{"n":1013,"bands":[{"lo":4,"hi":15},{"lo":15,"hi":20},{"lo":20,"hi":26},{"lo":26,"hi":36},{"lo":36,"hi":95}],"groups":[{"lo":9,"hi":32},{"lo":32,"hi":42},{"lo":42,"hi":57},{"lo":57,"hi":98}],"cells":[[{"n":81,"admit":51.0,"gpa":3.753,"dpe":0.059,"apps":5246,"adm":2545,"upp":84,"appr":11},{"n":76,"admit":47.9,"gpa":3.825,"dpe":0.059,"apps":5562,"adm":2491,"upp":73,"appr":12},{"n":36,"admit":45.4,"gpa":3.87,"dpe":0.054,"apps":3088,"adm":1346,"upp":66,"appr":12},{"n":10,"admit":37.3,"gpa":3.852,"dpe":0.045,"apps":908,"adm":319,"upp":55,"appr":12}],[{"n":82,"admit":41.9,"gpa":3.695,"dpe":0.072,"apps":6193,"adm":2530,"upp":89,"appr":17},{"n":56,"admit":39.6,"gpa":3.804,"dpe":0.067,"apps":4876,"adm":1870,"upp":76,"appr":17},{"n":48,"admit":35.0,"gpa":3.868,"dpe":0.061,"apps":5802,"adm":1986,"upp":62,"appr":17},{"n":16,"admit":34.6,"gpa":3.937,"dpe":0.06,"apps":2567,"adm":825,"upp":49,"appr":17}],[{"n":54,"admit":35.4,"gpa":3.741,"dpe":0.079,"apps":5267,"adm":1850,"upp":87,"appr":22},{"n":61,"admit":36.0,"gpa":3.827,"dpe":0.082,"apps":6005,"adm":2080,"upp":77,"appr":23},{"n":55,"admit":32.1,"gpa":3.877,"dpe":0.073,"apps":7964,"adm":2520,"upp":61,"appr":23},{"n":33,"admit":29.4,"gpa":3.901,"dpe":0.067,"apps":5188,"adm":1494,"upp":47,"appr":23}],[{"n":30,"admit":33.6,"gpa":3.719,"dpe":0.102,"apps":3051,"adm":971,"upp":87,"appr":30},{"n":51,"admit":33.7,"gpa":3.834,"dpe":0.1,"apps":7346,"adm":2547,"upp":72,"appr":29},{"n":68,"admit":30.7,"gpa":3.917,"dpe":0.095,"apps":13287,"adm":3941,"upp":54,"appr":31},{"n":53,"admit":29.9,"gpa":3.94,"dpe":0.092,"apps":13167,"adm":3807,"upp":42,"appr":31}],[null,{"n":9,"admit":32.0,"gpa":3.897,"dpe":0.143,"apps":997,"adm":323,"upp":61,"appr":45},{"n":46,"admit":27.7,"gpa":3.961,"dpe":0.118,"apps":14388,"adm":3983,"upp":45,"appr":43},{"n":141,"admit":28.2,"gpa":3.97,"dpe":0.153,"apps":72654,"adm":20170,"upp":28,"appr":54}]],"within":[-0.252,-0.291,-0.299,-0.233,0.038],"r_raw":-0.429,"r_app":-0.152,"r_upp":-0.292,"r_ach_appr":0.645,"r_ach_gpa":0.594,"r_ach_dpe":0.495},"Irvine":{"n":1018,"bands":[{"lo":6,"hi":20},{"lo":20,"hi":28},{"lo":28,"hi":35},{"lo":35,"hi":44},{"lo":44,"hi":121}],"groups":[{"lo":7,"hi":32},{"lo":32,"hi":42},{"lo":42,"hi":57},{"lo":57,"hi":98}],"cells":[[{"n":69,"admit":25.5,"gpa":3.762,"dpe":0.04,"apps":4713,"adm":934,"upp":83,"appr":15},{"n":72,"admit":25.4,"gpa":3.851,"dpe":0.037,"apps":5321,"adm":1063,"upp":67,"appr":15},{"n":49,"admit":25.9,"gpa":3.914,"dpe":0.039,"apps":4681,"adm":1065,"upp":53,"appr":15},{"n":14,"admit":26.7,"gpa":3.92,"dpe":0.041,"apps":1429,"adm":341,"upp":42,"appr":15}],[{"n":58,"admit":23.0,"gpa":3.723,"dpe":0.056,"apps":6473,"adm":1261,"upp":85,"appr":24},{"n":68,"admit":21.9,"gpa":3.814,"dpe":0.053,"apps":8955,"adm":1772,"upp":72,"appr":24},{"n":55,"admit":23.3,"gpa":3.903,"dpe":0.056,"apps":8719,"adm":1946,"upp":51,"appr":24},{"n":22,"admit":26.7,"gpa":3.954,"dpe":0.065,"apps":3701,"adm":927,"upp":32,"appr":23}],[{"n":53,"admit":21.9,"gpa":3.685,"dpe":0.071,"apps":8323,"adm":1701,"upp":89,"appr":32},{"n":55,"admit":23.3,"gpa":3.778,"dpe":0.075,"apps":9227,"adm":2051,"upp":80,"appr":32},{"n":57,"admit":18.9,"gpa":3.878,"dpe":0.06,"apps":13256,"adm":2357,"upp":54,"appr":31},{"n":39,"admit":24.7,"gpa":3.944,"dpe":0.077,"apps":12155,"adm":3084,"upp":33,"appr":31}],[{"n":54,"admit":21.6,"gpa":3.656,"dpe":0.085,"apps":8773,"adm":1816,"upp":90,"appr":39},{"n":42,"admit":20.8,"gpa":3.748,"dpe":0.082,"apps":8375,"adm":1751,"upp":83,"appr":39},{"n":49,"admit":21.8,"gpa":3.864,"dpe":0.086,"apps":12881,"adm":2753,"upp":60,"appr":39},{"n":58,"admit":24.4,"gpa":3.944,"dpe":0.096,"apps":19655,"adm":4710,"upp":36,"appr":40}],[{"n":21,"admit":19.5,"gpa":3.62,"dpe":0.104,"apps":4401,"adm":846,"upp":93,"appr":52},{"n":17,"admit":20.2,"gpa":3.728,"dpe":0.109,"apps":3132,"adm":582,"upp":83,"appr":54},{"n":44,"admit":21.3,"gpa":3.792,"dpe":0.109,"apps":11397,"adm":2272,"upp":74,"appr":51},{"n":122,"admit":23.8,"gpa":3.929,"dpe":0.146,"apps":67291,"adm":15508,"upp":37,"appr":61}]],"within":[0.064,0.131,0.053,0.12,0.255],"r_raw":0.08,"r_app":0.144,"r_upp":0.101,"r_ach_appr":0.505,"r_ach_gpa":0.58,"r_ach_dpe":0.447},"Davis":{"n":1067,"bands":[{"lo":5,"hi":13},{"lo":13,"hi":18},{"lo":18,"hi":26},{"lo":26,"hi":38},{"lo":38,"hi":120}],"groups":[{"lo":0,"hi":31},{"lo":31,"hi":41},{"lo":41,"hi":56},{"lo":56,"hi":98}],"cells":[[{"n":74,"admit":42.0,"gpa":3.819,"dpe":0.043,"apps":4128,"adm":1638,"upp":88,"appr":10},{"n":73,"admit":41.9,"gpa":3.903,"dpe":0.042,"apps":4520,"adm":1817,"upp":78,"appr":10},{"n":50,"admit":41.3,"gpa":3.939,"dpe":0.043,"apps":4163,"adm":1664,"upp":68,"appr":10},{"n":17,"admit":38.6,"gpa":3.961,"dpe":0.039,"apps":1725,"adm":642,"upp":57,"appr":10}],[{"n":65,"admit":41.7,"gpa":3.802,"dpe":0.065,"apps":4785,"adm":1935,"upp":88,"appr":15},{"n":62,"admit":43.9,"gpa":3.887,"dpe":0.07,"apps":4508,"adm":1913,"upp":77,"appr":16},{"n":55,"admit":42.7,"gpa":3.955,"dpe":0.066,"apps":4749,"adm":1991,"upp":68,"appr":15},{"n":31,"admit":38.4,"gpa":3.996,"dpe":0.058,"apps":4341,"adm":1634,"upp":48,"appr":15}],[{"n":42,"admit":42.9,"gpa":3.813,"dpe":0.099,"apps":3543,"adm":1482,"upp":84,"appr":23},{"n":58,"admit":43.9,"gpa":3.883,"dpe":0.095,"apps":5361,"adm":2314,"upp":73,"appr":22},{"n":65,"admit":42.6,"gpa":3.984,"dpe":0.093,"apps":9125,"adm":3826,"upp":56,"appr":22},{"n":48,"admit":41.5,"gpa":3.981,"dpe":0.09,"apps":7998,"adm":3109,"upp":45,"appr":22}],[{"n":50,"admit":39.7,"gpa":3.827,"dpe":0.127,"apps":4810,"adm":1937,"upp":82,"appr":32},{"n":51,"admit":40.0,"gpa":3.887,"dpe":0.128,"apps":6076,"adm":2426,"upp":68,"appr":32},{"n":49,"admit":39.8,"gpa":3.96,"dpe":0.124,"apps":8797,"adm":3497,"upp":49,"appr":31},{"n":63,"admit":40.4,"gpa":4.018,"dpe":0.128,"apps":15024,"adm":5806,"upp":35,"appr":32}],[{"n":36,"admit":41.8,"gpa":3.782,"dpe":0.208,"apps":3847,"adm":1587,"upp":83,"appr":49},{"n":23,"admit":40.8,"gpa":3.861,"dpe":0.2,"apps":3696,"adm":1533,"upp":73,"appr":48},{"n":47,"admit":35.7,"gpa":3.946,"dpe":0.175,"apps":12954,"adm":4546,"upp":49,"appr":49},{"n":108,"admit":33.4,"gpa":4.003,"dpe":0.183,"apps":56243,"adm":16995,"upp":26,"appr":56}]],"within":[-0.071,-0.112,-0.069,0.098,-0.407],"r_raw":-0.217,"r_app":-0.121,"r_upp":0.0,"r_ach_appr":0.394,"r_ach_gpa":0.573,"r_ach_dpe":0.275},"Santa Cruz":{"n":989,"bands":[{"lo":4,"hi":11},{"lo":11,"hi":16},{"lo":16,"hi":20},{"lo":20,"hi":30},{"lo":30,"hi":93}],"groups":[{"lo":5,"hi":32},{"lo":32,"hi":42},{"lo":42,"hi":57},{"lo":57,"hi":98}],"cells":[[{"n":61,"admit":54.2,"gpa":3.709,"dpe":0.047,"apps":3392,"adm":1831,"upp":86,"appr":9},{"n":67,"admit":60.2,"gpa":3.803,"dpe":0.054,"apps":3772,"adm":2255,"upp":76,"appr":9},{"n":47,"admit":63.8,"gpa":3.843,"dpe":0.06,"apps":3339,"adm":2105,"upp":67,"appr":9},{"n":23,"admit":62.4,"gpa":3.881,"dpe":0.053,"apps":1907,"adm":1203,"upp":51,"appr":8}],[{"n":68,"admit":54.4,"gpa":3.711,"dpe":0.074,"apps":4467,"adm":2442,"upp":87,"appr":13},{"n":57,"admit":61.1,"gpa":3.794,"dpe":0.082,"apps":4339,"adm":2672,"upp":77,"appr":13},{"n":49,"admit":64.6,"gpa":3.886,"dpe":0.088,"apps":5302,"adm":3455,"upp":56,"appr":14},{"n":25,"admit":68.1,"gpa":3.922,"dpe":0.09,"apps":3006,"adm":2025,"upp":48,"appr":13}],[{"n":54,"admit":55.8,"gpa":3.743,"dpe":0.099,"apps":3724,"adm":2031,"upp":86,"appr":18},{"n":50,"admit":59.1,"gpa":3.808,"dpe":0.107,"apps":4037,"adm":2406,"upp":72,"appr":18},{"n":51,"admit":61.9,"gpa":3.838,"dpe":0.114,"apps":5902,"adm":3739,"upp":62,"appr":18},{"n":41,"admit":67.3,"gpa":3.911,"dpe":0.119,"apps":6568,"adm":4440,"upp":44,"appr":18}],[{"n":42,"admit":53.0,"gpa":3.733,"dpe":0.131,"apps":3097,"adm":1686,"upp":86,"appr":25},{"n":49,"admit":58.6,"gpa":3.799,"dpe":0.146,"apps":4648,"adm":2833,"upp":74,"appr":25},{"n":53,"admit":66.3,"gpa":3.914,"dpe":0.16,"apps":7581,"adm":5105,"upp":53,"appr":24},{"n":55,"admit":68.5,"gpa":3.952,"dpe":0.179,"apps":10969,"adm":7509,"upp":32,"appr":26}],[{"n":24,"admit":55.9,"gpa":3.725,"dpe":0.234,"apps":2387,"adm":1400,"upp":87,"appr":42},{"n":23,"admit":62.6,"gpa":3.837,"dpe":0.24,"apps":2994,"adm":1913,"upp":69,"appr":38},{"n":47,"admit":66.5,"gpa":3.945,"dpe":0.261,"apps":11396,"adm":7743,"upp":45,"appr":39},{"n":103,"admit":67.3,"gpa":3.955,"dpe":0.309,"apps":44167,"adm":29711,"upp":27,"appr":46}]],"within":[0.378,0.491,0.38,0.477,0.379],"r_raw":0.448,"r_app":0.412,"r_upp":0.017,"r_ach_appr":0.409,"r_ach_gpa":0.57,"r_ach_dpe":0.493},"Riverside":{"n":887,"bands":[{"lo":4,"hi":12},{"lo":12,"hi":18},{"lo":18,"hi":25},{"lo":25,"hi":34},{"lo":34,"hi":111}],"groups":[{"lo":9,"hi":32},{"lo":32,"hi":43},{"lo":43,"hi":58},{"lo":58,"hi":98}],"cells":[[{"n":42,"admit":73.9,"gpa":3.662,"dpe":0.064,"apps":1895,"adm":1396,"upp":83,"appr":9},{"n":57,"admit":78.2,"gpa":3.708,"dpe":0.068,"apps":2956,"adm":2281,"upp":68,"appr":9},{"n":52,"admit":79.5,"gpa":3.76,"dpe":0.066,"apps":3069,"adm":2434,"upp":49,"appr":8},{"n":27,"admit":80.9,"gpa":3.792,"dpe":0.068,"apps":1919,"adm":1557,"upp":31,"appr":8}],[{"n":30,"admit":74.5,"gpa":3.632,"dpe":0.11,"apps":2381,"adm":1768,"upp":82,"appr":15},{"n":46,"admit":75.1,"gpa":3.694,"dpe":0.111,"apps":3850,"adm":2917,"upp":71,"appr":15},{"n":62,"admit":80.3,"gpa":3.724,"dpe":0.119,"apps":7127,"adm":5715,"upp":50,"appr":15},{"n":39,"admit":82.5,"gpa":3.79,"dpe":0.122,"apps":5127,"adm":4238,"upp":28,"appr":15}],[{"n":47,"admit":70.6,"gpa":3.571,"dpe":0.15,"apps":5405,"adm":3850,"upp":88,"appr":21},{"n":47,"admit":74.0,"gpa":3.626,"dpe":0.159,"apps":5485,"adm":4064,"upp":82,"appr":22},{"n":42,"admit":80.0,"gpa":3.714,"dpe":0.163,"apps":6483,"adm":5176,"upp":54,"appr":20},{"n":42,"admit":82.1,"gpa":3.779,"dpe":0.176,"apps":8161,"adm":6729,"upp":31,"appr":21}],[{"n":56,"admit":68.9,"gpa":3.527,"dpe":0.2,"apps":6375,"adm":4420,"upp":92,"appr":29},{"n":40,"admit":74.1,"gpa":3.587,"dpe":0.213,"apps":5754,"adm":4304,"upp":84,"appr":29},{"n":38,"admit":75.6,"gpa":3.669,"dpe":0.213,"apps":7332,"adm":5744,"upp":67,"appr":28},{"n":42,"admit":81.2,"gpa":3.777,"dpe":0.241,"apps":10740,"adm":8734,"upp":38,"appr":30}],[{"n":47,"admit":67.1,"gpa":3.488,"dpe":0.294,"apps":8028,"adm":5406,"upp":90,"appr":44},{"n":32,"admit":72.0,"gpa":3.52,"dpe":0.299,"apps":5892,"adm":4196,"upp":87,"appr":41},{"n":27,"admit":73.3,"gpa":3.561,"dpe":0.297,"apps":5608,"adm":4212,"upp":86,"appr":40},{"n":72,"admit":81.8,"gpa":3.787,"dpe":0.392,"apps":33484,"adm":27616,"upp":40,"appr":48}]],"within":[0.313,0.407,0.583,0.519,0.637],"r_raw":0.489,"r_app":0.524,"r_upp":0.112,"r_ach_appr":0.182,"r_ach_gpa":0.549,"r_ach_dpe":0.301},"Merced":{"n":882,"bands":[{"lo":3,"hi":8},{"lo":8,"hi":11},{"lo":11,"hi":15},{"lo":15,"hi":21},{"lo":21,"hi":70}],"groups":[{"lo":5,"hi":31},{"lo":31,"hi":42},{"lo":42,"hi":57},{"lo":57,"hi":98}],"cells":[[{"n":23,"admit":92.6,"gpa":3.828,"dpe":0.059,"apps":1041,"adm":969,"upp":83,"appr":6},{"n":38,"admit":93.1,"gpa":3.909,"dpe":0.06,"apps":1834,"adm":1706,"upp":70,"appr":6},{"n":63,"admit":94.0,"gpa":3.96,"dpe":0.058,"apps":3592,"adm":3390,"upp":54,"appr":6},{"n":53,"admit":96.0,"gpa":3.984,"dpe":0.06,"apps":3517,"adm":3375,"upp":35,"appr":6}],[{"n":40,"admit":90.7,"gpa":3.783,"dpe":0.085,"apps":2359,"adm":2146,"upp":82,"appr":9},{"n":44,"admit":92.8,"gpa":3.881,"dpe":0.086,"apps":2437,"adm":2260,"upp":72,"appr":9},{"n":53,"admit":94.9,"gpa":3.942,"dpe":0.086,"apps":3374,"adm":3205,"upp":57,"appr":9},{"n":39,"admit":96.1,"gpa":3.977,"dpe":0.089,"apps":3573,"adm":3426,"upp":40,"appr":9}],[{"n":48,"admit":90.6,"gpa":3.766,"dpe":0.114,"apps":2720,"adm":2462,"upp":89,"appr":13},{"n":45,"admit":92.1,"gpa":3.83,"dpe":0.114,"apps":2936,"adm":2704,"upp":80,"appr":12},{"n":42,"admit":94.2,"gpa":3.933,"dpe":0.117,"apps":3885,"adm":3659,"upp":55,"appr":12},{"n":41,"admit":96.1,"gpa":3.981,"dpe":0.119,"apps":4490,"adm":4321,"upp":33,"appr":12}],[{"n":57,"admit":91.6,"gpa":3.773,"dpe":0.164,"apps":3776,"adm":3464,"upp":89,"appr":18},{"n":52,"admit":92.0,"gpa":3.858,"dpe":0.16,"apps":3990,"adm":3702,"upp":76,"appr":17},{"n":27,"admit":94.8,"gpa":3.921,"dpe":0.166,"apps":2816,"adm":2674,"upp":61,"appr":17},{"n":40,"admit":95.8,"gpa":3.993,"dpe":0.169,"apps":6261,"adm":6028,"upp":33,"appr":18}],[{"n":53,"admit":90.8,"gpa":3.757,"dpe":0.304,"apps":5526,"adm":5062,"upp":88,"appr":33},{"n":41,"admit":93.6,"gpa":3.853,"dpe":0.287,"apps":4156,"adm":3859,"upp":84,"appr":31},{"n":35,"admit":93.6,"gpa":3.849,"dpe":0.249,"apps":3818,"adm":3582,"upp":76,"appr":27},{"n":48,"admit":95.6,"gpa":3.961,"dpe":0.304,"apps":13557,"adm":13063,"upp":38,"appr":32}]],"within":[0.333,0.46,0.452,0.38,0.359],"r_raw":0.397,"r_app":0.396,"r_upp":0.194,"r_ach_appr":-0.028,"r_ach_gpa":0.597,"r_ach_dpe":0.006}};
+
+const CAMPUSES = ["Berkeley","Los Angeles","San Diego","Santa Barbara","Irvine","Davis","Santa Cruz","Riverside","Merced"];
+const SERIES = ["--s1","--s2","--s3","--s4"];
+const NB = 5, NG = 4;
+
+const GROUP_NAME = [
+  "Lowest-scoring quarter of schools",
+  "Second quarter",
+  "Third quarter",
+  "Highest-scoring quarter of schools"
+];
+const GROUP_SHORT = ["lowest-scoring quarter","second quarter","third quarter","highest-scoring quarter"];
+
+let campus = "San Diego";
+let sel = null;          // {b, g}  — g === null means a whole column is selected
+let hov = null;          // same shape, from the pointer
+let lockedSeries = null; // g, set by clicking a legend entry
+let charts = [];
+
+const $ = id => document.getElementById(id);
+const cssv = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const num = n => n.toLocaleString("en-US");
+const el = (tag, attrs={}, text) => {
+  const e = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (text !== undefined) e.textContent = text;
+  return e;
+};
+const active = () => hov || sel;
+const same = (a,b) => a && b && a.b===b.b && a.g===b.g;
+
+/* ---------- geometry (identical in both panels) ---------- */
+const W = 520, H = 330, M = {t: 16, r: 96, b: 62, l: 46};
+const PW = W - M.l - M.r, PH = H - M.t - M.b, STEP = PW/(NB-1);
+const X = b => M.l + STEP*b;
+
+function niceTicks(lo, hi, n=6){
+  const raw=(hi-lo)/n, mag=Math.pow(10,Math.floor(Math.log10(raw)));
+  const step=[1,2,2.5,4,5,10].map(m=>m*mag).find(s=>s>=raw)||10*mag;
+  const out=[]; for(let v=Math.ceil(lo/step)*step; v<=hi+1e-9; v+=step) out.push(+v.toFixed(10));
+  return out;
+}
+
+/* ---------- one panel ---------- */
+function drawChart(svgId, key, fmt, decimals){
+  const svg = $(svgId), D = DATA[campus];
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+  const vals=[];
+  for(let b=0;b<NB;b++) for(let g=0;g<NG;g++){ const c=D.cells[b][g]; if(c) vals.push(c[key]); }
+  const lo0=Math.min(...vals), hi0=Math.max(...vals), span=(hi0-lo0)||1;
+  const lo=lo0-span*0.16, hi=hi0+span*0.16;
+  const y = v => M.t + PH - ((v-lo)/(hi-lo))*PH;
+
+  // column bands sit behind everything
+  const bands=[];
+  for(let b=0;b<NB;b++){
+    const r = el("rect",{class:"colband",x:X(b)-STEP*0.44,y:M.t-8,width:STEP*0.88,height:PH+16,rx:6});
+    svg.appendChild(r); bands.push(r);
+  }
+
+  niceTicks(lo,hi).forEach(t=>{
+    svg.appendChild(el("line",{class:"gl",x1:M.l-6,x2:M.l+PW+10,y1:y(t),y2:y(t)}));
+    svg.appendChild(el("text",{class:"ax",x:M.l-10,y:y(t)+4,"text-anchor":"end"},
+      decimals?t.toFixed(decimals):String(t)));
+  });
+
+  for (let g=0; g<NG; g++){
+    const col = cssv(SERIES[g]), pts=[];
+    for(let b=0;b<NB;b++){ const c=D.cells[b][g]; if(c) pts.push([b,c[key],c]); }
+    if(!pts.length) continue;
+    const grp = el("g",{class:"fx","data-series":g});
+    grp.appendChild(el("polyline",{class:"ln",stroke:col,
+      points: pts.map(p=>X(p[0])+","+y(p[1])).join(" ")}));
+    pts.forEach(p=>{
+      const r = 4.2 + Math.min(4.6, Math.sqrt(p[2].n)/3.6);
+      grp.appendChild(el("circle",{class:"dot",cx:X(p[0]),cy:y(p[1]),r:r,fill:col}));
+    });
+    const last=pts[pts.length-1];
+    grp.appendChild(el("circle",{cx:M.l+PW+16,cy:y(last[1]),r:4,fill:col}));
+    grp.appendChild(el("text",{class:"serieslab",x:M.l+PW+25,y:y(last[1])+4}, fmt(last[1])));
+    svg.appendChild(grp);
+  }
+
+  // column labels: hoverable and clickable, they select the whole column
+  const labels=[];
+  for(let b=0;b<NB;b++){
+    const bd=D.bands[b];
+    const g=el("g",{class:"collab",tabindex:"0",role:"button",
+      "aria-label":"Select all schools where "+bd.lo+" to "+bd.hi+" percent of eligible seniors apply"});
+    g.appendChild(el("rect",{x:X(b)-STEP*0.44,y:M.t+PH+8,width:STEP*0.88,height:22,rx:5,fill:"transparent"}));
+    g.appendChild(el("text",{class:"axb",x:X(b),y:M.t+PH+22,"text-anchor":"middle"}, bd.lo+"–"+bd.hi+"%"));
+    const on=()=>{ hov={b,g:null}; sync(); paintReadout(); hideTip(); };
+    const off=()=>{ hov=null; sync(); paintReadout(); };
+    g.addEventListener("pointerenter",on); g.addEventListener("focus",on);
+    g.addEventListener("pointerleave",off); g.addEventListener("blur",off);
+    const toggle=()=>{ sel = same(sel,{b,g:null}) ? null : {b,g:null}; afterSelect(); };
+    g.addEventListener("click",toggle);
+    g.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){e.preventDefault();toggle();} });
+    svg.appendChild(g); labels.push(g);
+  }
+  svg.appendChild(el("text",{class:"ax",x:M.l,y:M.t+PH+45},"◄ few apply"));
+  svg.appendChild(el("text",{class:"ax",x:M.l+PW,y:M.t+PH+45,"text-anchor":"end"},"most apply ►"));
+
+  // point list + keyboard stand-ins (pointer-events off, so they never block)
+  const pts=[];
+  for(let b=0;b<NB;b++) for(let g=0;g<NG;g++){
+    const c=D.cells[b][g]; if(c) pts.push({b,g,px:X(b),py:y(c[key])});
+  }
+  pts.forEach(pt=>{
+    const k=el("circle",{class:"hit",cx:pt.px,cy:pt.py,r:12,tabindex:"0",role:"button",
+      "data-b":pt.b,"data-g":pt.g,
+      "aria-label":GROUP_NAME[pt.g]+", "+DATA[campus].bands[pt.b].lo+" to "
+        +DATA[campus].bands[pt.b].hi+" percent of eligible seniors applying"});
+    k.addEventListener("focus",()=>{ hov={b:pt.b,g:pt.g}; sync(); paintReadout(); });
+    k.addEventListener("blur",()=>{ hov=null; sync(); paintReadout(); });
+    k.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault();
+      sel = same(sel,{b:pt.b,g:pt.g}) ? null : {b:pt.b,g:pt.g}; afterSelect(); }});
+    svg.appendChild(k);
+  });
+
+  const hiDot = el("circle",{class:"dothi",r:10}); hiDot.style.display="none"; svg.appendChild(hiDot);
+
+  function nearest(ev){
+    const m=svg.getScreenCTM(); if(!m) return null;
+    const p=svg.createSVGPoint(); p.x=ev.clientX; p.y=ev.clientY;
+    const q=p.matrixTransform(m.inverse());
+    const b=Math.max(0,Math.min(NB-1,Math.round((q.x-M.l)/STEP)));
+    let best=null, bd=Infinity;
+    pts.forEach(pt=>{ if(pt.b!==b) return;
+      if(lockedSeries!==null && pt.g!==lockedSeries) return;
+      const d=Math.abs(pt.py-q.y); if(d<bd){bd=d;best=pt;} });
+    return best;
+  }
+  const surf = el("rect",{class:"surface",x:M.l-30,y:M.t-14,width:PW+70,height:PH+30});
+  surf.addEventListener("pointermove",ev=>{
+    const pt=nearest(ev); if(!pt) return;
+    hov={b:pt.b,g:pt.g}; sync(); paintReadout(); tip(ev,pt.b,pt.g,key,fmt);
+  });
+  surf.addEventListener("pointerleave",()=>{ hov=null; sync(); paintReadout(); hideTip(); });
+  surf.addEventListener("click",ev=>{ const pt=nearest(ev); if(!pt) return;
+    sel = same(sel,{b:pt.b,g:pt.g}) ? null : {b:pt.b,g:pt.g}; afterSelect(); });
+  svg.appendChild(surf);
+
+  charts.push({svg, y, key, bands, labels, hiDot, pts});
+}
+
+/* ---------- shared visual state ---------- */
+function sync(){
+  const a = active();
+  const focus = lockedSeries!==null ? lockedSeries : (a && a.g!==null ? a.g : null);
+  document.querySelectorAll("g.fx").forEach(g=>{
+    g.classList.toggle("dim", focus!==null && +g.getAttribute("data-series")!==focus);
+  });
+  document.querySelectorAll("#legend li:not(.hd)").forEach(li=>{
+    const s=+li.getAttribute("data-series");
+    li.classList.toggle("on", focus===s);
+    li.classList.toggle("locked", lockedSeries===s);
+    li.setAttribute("aria-pressed", String(lockedSeries===s));
+  });
+  charts.forEach(ch=>{
+    ch.bands.forEach((r,b)=>{
+      r.classList.toggle("on", !!a && a.b===b);
+      r.classList.toggle("sel", !!a && a.b===b && a.g===null);
+    });
+    ch.labels.forEach((g,b)=>{
+      g.classList.toggle("on", !!a && a.b===b);
+      g.classList.toggle("sel", !!sel && sel.b===b && sel.g===null);
+    });
+    if (a && a.g!==null){
+      const c = DATA[campus].cells[a.b][a.g];
+      if (c){ ch.hiDot.setAttribute("cx", X(a.b)); ch.hiDot.setAttribute("cy", ch.y(c[ch.key]));
+              ch.hiDot.style.display=""; return; }
+    }
+    ch.hiDot.style.display="none";
+  });
+}
+
+function afterSelect(){
+  const bar=$("pinbar");
+  bar.hidden = !sel;
+  if (sel) $("pinword").textContent = sel.g===null
+    ? "A column is selected. Hovering elsewhere will not change the panel."
+    : "A point is selected. Hovering elsewhere will not change the panel.";
+  sync(); paintReadout(); hideTip();
+}
+
+function paintReadout(){
+  const a=active();
+  if(!a) renderDefault();
+  else if(a.g===null) describeColumn(a.b);
+  else describePoint(a.b,a.g);
+}
+
+/* ---------- tooltip ---------- */
+function tip(ev,b,g,key,fmt){
+  const t=$("tip"), D=DATA[campus], c=D.cells[b][g];
+  while(t.firstChild) t.removeChild(t.firstChild);
+  const v=document.createElement("div"); v.className="v"; v.textContent=fmt(c[key]); t.appendChild(v);
+  const k=document.createElement("div"); k.className="k";
+  const i=document.createElement("i"); i.style.background=cssv(SERIES[g]);
+  k.appendChild(i); k.appendChild(document.createTextNode(GROUP_SHORT[g])); t.appendChild(k);
+  const k2=document.createElement("div"); k2.className="k";
+  k2.textContent = num(c.n)+" schools, where "+D.bands[b].lo+"–"+D.bands[b].hi+"% of eligible seniors apply";
+  t.appendChild(k2);
+  t.classList.add("on");
+  const pad=14, w=t.offsetWidth, h=t.offsetHeight;
+  let L=ev.clientX+pad, T=ev.clientY-h-pad;
+  if(L+w>window.innerWidth-8) L=ev.clientX-w-pad;
+  if(T<8) T=ev.clientY+pad;
+  t.style.left=L+"px"; t.style.top=T+"px";
+}
+function hideTip(){ $("tip").classList.remove("on"); }
+
+/* ---------- readout ---------- */
+function row(dl,term,nodes){
+  const dt=document.createElement("dt"); dt.textContent=term;
+  const dd=document.createElement("dd");
+  nodes.forEach(n=>dd.appendChild(typeof n==="string"?document.createTextNode(n):n));
+  dl.appendChild(dt); dl.appendChild(dd);
+}
+const strong = s => { const b=document.createElement("b"); b.textContent=s; return b; };
+function head(kicker, text, swatchColor){
+  const r=$("readout");
+  while(r.firstChild) r.removeChild(r.firstChild);
+  const k=document.createElement("p"); k.className="kicker"; k.textContent=kicker; r.appendChild(k);
+  const h=document.createElement("h2");
+  if(swatchColor){ const sw=document.createElement("span"); sw.className="sw";
+    sw.style.background=swatchColor; h.appendChild(sw); }
+  h.appendChild(document.createTextNode(text)); r.appendChild(h);
+  return r;
+}
+
+function renderDefault(){
+  const D=DATA[campus];
+  const r=head("Nothing selected","Hover or click any point — or any column label — to see what it stands for");
+  const dl=document.createElement("dl");
+  row(dl,"Each point",["one group of California high schools, not one school and not one year. ",
+    "The three admission cycles 2023, 2024 and 2025 are pooled together."]);
+  row(dl,"Left to right",["how many of a school's UC-eligible seniors applied to UC "+campus+
+    ". Far left: schools where only ", strong(D.bands[0].lo+"–"+D.bands[0].hi+"%"),
+    " applied. Far right: schools where ", strong(D.bands[NB-1].lo+"–"+D.bands[NB-1].hi+"%"),
+    " did. This is a measure of student behavior, not a date."]);
+  row(dl,"Line color",["the school's own test performance. The palest line is the quarter of schools",
+    " with the lowest share of 11th graders meeting the state standard (",
+    strong(D.groups[0].lo+"–"+D.groups[0].hi+"%"), "); the darkest is the highest quarter (",
+    strong(D.groups[NG-1].lo+"–"+D.groups[NG-1].hi+"%"), ")."]);
+  row(dl,"Dot size",["how many schools are in that group. Bigger dots are more schools."]);
+  row(dl,"Whole columns",["click a percentage label under either chart to take in one column at once —",
+    " all the schools with about the same application rate, compared across the four performance groups."]);
+  row(dl,"If lines overlap",["click a legend entry below the charts to show that group on its own."]);
+  row(dl,"This campus",[num(D.n)+" schools sent at least 30 applications to UC "+campus+
+    " across the three years."]);
+  r.appendChild(dl);
+}
+
+function describePoint(b,g){
+  const D=DATA[campus], c=D.cells[b][g], bd=D.bands[b], gr=D.groups[g];
+  if(!c) return;
+  const r=head(same(sel,{b,g})?"Selected point":"Point under the pointer",
+    GROUP_NAME[g]+", where "+bd.lo+"–"+bd.hi+"% of eligible seniors apply to UC "+campus,
+    cssv(SERIES[g]));
+  const dl=document.createElement("dl");
+  row(dl,"Which schools",[strong(num(c.n)+(c.n===1?" school":" schools")),
+    ". At these schools ", strong(gr.lo+"–"+gr.hi+"%"),
+    " of 11th graders met the state standard on the CAASPP tests, which puts them in the ",
+    GROUP_SHORT[g], " of the schools shown here. On average ", strong(c.upp+"%"),
+    " of their students are counted as low-income, English learners, or in foster care."]);
+  row(dl,"How many applied",["Between ", strong(bd.lo+"%"), " and ", strong(bd.hi+"%"),
+    " of their A–G-eligible seniors applied to UC "+campus+" (average ", strong(c.appr+"%"),
+    "). A–G-eligible means the student finished the course sequence UC requires, so they were",
+    " in a position to apply."]);
+  row(dl,"What happened",["Together these schools sent ", strong(num(c.apps)+" applications"),
+    " to UC "+campus+" over 2023–2025 and received ", strong(num(c.adm)+" offers"),
+    ". Averaged across the schools, ", strong(c.admit+"%"), " of applicants were admitted."]);
+  row(dl,"Their applicants",["The students who applied from these schools averaged ",
+    strong(c.gpa.toFixed(2)), " on UC's recalculated grade point average scale."]);
+  if(c.dpe!==null && c.dpe!==undefined)
+    row(dl,"Per eligible senior",["Counting every A–G-eligible senior, not just those who applied,",
+      " these schools received ", strong(c.dpe.toFixed(3)+" offers per eligible senior"),
+      " — about ", strong(Math.round(c.dpe*1000)+" per 1,000"), "."]);
+  r.appendChild(dl);
+  const n=document.createElement("p"); n.className="note";
+  n.textContent="Where this point sits left to right is how many students applied, not when. "
+    +"Click the percentage label under the chart to compare this group with the other three at "
+    +"the same application rate.";
+  r.appendChild(n);
+}
+
+function describeColumn(b){
+  const D=DATA[campus], bd=D.bands[b];
+  const live=[]; for(let g=0;g<NG;g++){ const c=D.cells[b][g]; if(c) live.push({g,c}); }
+  if(!live.length) return;
+  const tot = live.reduce((a,x)=>({n:a.n+x.c.n, apps:a.apps+x.c.apps, adm:a.adm+x.c.adm}),
+                          {n:0,apps:0,adm:0});
+  const wAvg = k => live.reduce((a,x)=>a+x.c[k]*x.c.n,0)/tot.n;
+  const rates = live.map(x=>x.c.admit), gpas = live.map(x=>x.c.gpa);
+  const loR=Math.min(...rates), hiR=Math.max(...rates);
+  const loRg=live[rates.indexOf(loR)].g, hiRg=live[rates.indexOf(hiR)].g;
+  const loG=Math.min(...gpas), hiG=Math.max(...gpas);
+
+  const r=head(sel && sel.b===b && sel.g===null ? "Selected column" : "Column under the pointer",
+    "All schools where "+bd.lo+"–"+bd.hi+"% of eligible seniors apply to UC "+campus);
+
+  const dl=document.createElement("dl");
+  row(dl,"Which schools",[strong(num(tot.n)+" schools"),
+    " — every performance group in this column combined. Between ", strong(bd.lo+"%"),
+    " and ", strong(bd.hi+"%"), " of their A–G-eligible seniors applied to UC "+campus,
+    ". They differ from one another mainly in how their own students score on the state tests,",
+    " which is what the four rows below separate."]);
+  row(dl,"What happened",["Together they sent ", strong(num(tot.apps)+" applications"),
+    " over 2023–2025 and received ", strong(num(tot.adm)+" offers"),
+    ". Counting every application equally that is an admit rate of ",
+    strong((100*tot.adm/tot.apps).toFixed(1)+"%"),
+    "; averaging across schools instead, so a small school counts as much as a large one, it is ",
+    strong(wAvg("admit").toFixed(1)+"%"), "."]);
+  r.appendChild(dl);
+
+  // the cross-comparison
+  const cap=document.createElement("p"); cap.className="tblcap";
+  cap.textContent="The four performance groups at this application rate";
+  r.appendChild(cap);
+
+  const t=document.createElement("table"); t.className="cmp";
+  const thead=document.createElement("thead"), hr=document.createElement("tr");
+  ["School test performance","Schools","Admit rate","Applicant GPA","Offers per 1,000 eligible"]
+    .forEach((x,i)=>{ const th=document.createElement("th"); th.scope="col"; th.textContent=x;
+                      if(i===0) th.className="lft"; hr.appendChild(th); });
+  thead.appendChild(hr); t.appendChild(thead);
+  const tb=document.createElement("tbody");
+  live.forEach(({g,c})=>{
+    const tr=document.createElement("tr");
+    const th=document.createElement("th"); th.scope="row"; th.className="lft";
+    const sw=document.createElement("span"); sw.className="rowsw";
+    sw.style.background=cssv(SERIES[g]); th.appendChild(sw);
+    th.appendChild(document.createTextNode(GROUP_NAME[g]+" ("+D.groups[g].lo+"–"+D.groups[g].hi+"% met standard)"));
+    tr.appendChild(th);
+    [num(c.n), c.admit.toFixed(1)+"%", c.gpa.toFixed(2),
+     (c.dpe!==null&&c.dpe!==undefined)?Math.round(c.dpe*1000):"—"]
+      .forEach(v=>{ const td=document.createElement("td"); td.textContent=v; tr.appendChild(td); });
+    tb.appendChild(tr);
+  });
+  t.appendChild(tb); r.appendChild(t);
+
+  const dl2=document.createElement("dl");
+  row(dl2,"Reading the rows",["All four rows hold schools whose students apply at roughly the same rate,",
+    " so the differences between the rows are not differences in how many students applied.",
+    " The admit rate runs from ", strong(loR.toFixed(1)+"%"), " (", GROUP_SHORT[loRg],
+    ") to ", strong(hiR.toFixed(1)+"%"), " (", GROUP_SHORT[hiRg], "), a spread of ",
+    strong((hiR-loR).toFixed(1)+" percentage points"),
+    ". Applicant GPA runs from ", strong(loG.toFixed(2)), " to ", strong(hiG.toFixed(2)), "."]);
+  row(dl2,"A caution",["These are averages over schools, and the groups differ in more than test",
+    " scores — income, neighborhood, size and the mix of subjects students apply to all move together",
+    " with performance. A gap in this table is a description of the published records, not a",
+    " measurement of any one of those things."]);
+  r.appendChild(dl2);
+}
+
+/* ---------- legend, table, chrome ---------- */
+function buildLegend(){
+  const ul=$("legend"); while(ul.firstChild) ul.removeChild(ul.firstChild);
+  const hd=document.createElement("li"); hd.className="hd";
+  hd.textContent="School test performance"; ul.appendChild(hd);
+  const D=DATA[campus];
+  GROUP_NAME.forEach((nm,g)=>{
+    const li=document.createElement("li"); li.setAttribute("data-series",g);
+    li.tabIndex=0; li.setAttribute("role","button");
+    const sw=document.createElement("span"); sw.className="sw"; sw.style.background=cssv(SERIES[g]);
+    li.appendChild(sw);
+    li.appendChild(document.createTextNode(nm+" ("+D.groups[g].lo+"–"+D.groups[g].hi+"% met standard)"));
+    const toggle=()=>{ lockedSeries = (lockedSeries===g)?null:g;
+      $("lockhint").hidden = lockedSeries===null; sync(); };
+    li.addEventListener("click",toggle);
+    li.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){e.preventDefault();toggle();} });
+    ul.appendChild(li);
+  });
+}
+
+function buildTable(){
+  const host=$("tableHost"); while(host.firstChild) host.removeChild(host.firstChild);
+  const D=DATA[campus], t=document.createElement("table");
+  const cap=document.createElement("caption");
+  cap.textContent="UC "+campus+", 2023–2025. Admit rate % / applicant-pool GPA / number of schools.";
+  t.appendChild(cap);
+  const thead=document.createElement("thead"), hr=document.createElement("tr");
+  ["Share of eligible seniors applying", ...GROUP_NAME].forEach((x,i)=>{
+    const th=document.createElement("th"); th.scope="col"; th.textContent=x;
+    if(i===0) th.className="lft"; hr.appendChild(th); });
+  thead.appendChild(hr); t.appendChild(thead);
+  const tb=document.createElement("tbody");
+  for(let b=0;b<NB;b++){
+    const tr=document.createElement("tr");
+    const th=document.createElement("th"); th.scope="row"; th.className="lft";
+    th.textContent=D.bands[b].lo+"–"+D.bands[b].hi+"%"; tr.appendChild(th);
+    for(let g=0;g<NG;g++){
+      const td=document.createElement("td"), c=D.cells[b][g];
+      td.textContent = c ? c.admit.toFixed(1)+"%  ·  "+c.gpa.toFixed(2)+"  ·  n="+c.n : "—";
+      tr.appendChild(td);
+    }
+    tb.appendChild(tr);
+  }
+  t.appendChild(tb); host.appendChild(t);
+}
+
+function render(){
+  charts = [];
+  drawChart("svgA","admit", v=>v.toFixed(1)+"%", 0);
+  drawChart("svgB","gpa",   v=>v.toFixed(2),     2);
+  buildLegend(); buildTable(); sync();
+}
+
+function buildChips(){
+  const host=$("campusChips");
+  CAMPUSES.forEach(c=>{
+    const b=document.createElement("button");
+    b.className="chip"; b.type="button"; b.textContent=c;
+    b.setAttribute("aria-pressed", String(c===campus));
+    b.addEventListener("click",()=>{
+      campus=c; sel=null; hov=null; lockedSeries=null;
+      $("pinbar").hidden=true; $("lockhint").hidden=true;
+      host.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x.textContent===c)));
+      render(); paintReadout(); hideTip();
+    });
+    host.appendChild(b);
+  });
+}
+
+$("clearPin").addEventListener("click",()=>{ sel=null; hov=null; afterSelect(); });
+$("themeBtn").addEventListener("click",()=>{
+  const dark = document.documentElement.getAttribute("data-theme")==="dark";
+  document.documentElement.setAttribute("data-theme", dark?"light":"dark");
+  $("themeBtn").textContent = dark?"Dark":"Light";
+  render(); paintReadout();
+});
+document.addEventListener("keydown",e=>{ if(e.key==="Escape" && sel){ sel=null; afterSelect(); }});
+window.addEventListener("resize",hideTip);
+
+buildChips(); render(); paintReadout();
+</script>
+</body>
+</html>
